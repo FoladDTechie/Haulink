@@ -1,4 +1,5 @@
 # Haulink
+<<<<<<< HEAD
 
 > Containerizing trailer space for SMEs. Book. Pay. Track. Deliver.
 
@@ -174,3 +175,6 @@ Add your `.env.local` variables in Vercel project settings.
 - Public repo: [github.com/YOUR_ORG/haulink](https://github.com)
 - Live app: [haulink.vercel.app](https://vercel.app)
 - Weekly tweets: `#gimbalabs #pieceofpie #hackathon @gimbalabs`
+=======
+Haulink helps SMEs and farmers ship like large distributors do. We turn trailer space into standardized, bookable logistics units and use Cardano for payments, escrow, and proof of delivery.
+>>>>>>> 9dfcbb198c1577901e16854e5abc3319ab95b561
