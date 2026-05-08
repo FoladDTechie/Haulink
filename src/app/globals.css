@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy: #0D1B3E;
+  --navy-mid: #162952;
+  --ink: #0A0F22;
+  --dark: #0A0A0A;
+  --dark-mid: #111111;
+  --green: #2ECC52;
+  --green-dark: #1fa33e;
+  --green-deep: #0e6a28;
+  --cream: #F5F2EC;
+  --sand: #EDE8DF;
+  --paper: #FBF9F4;
+  --line: rgba(13, 27, 62, 0.08);
+  --line-strong: rgba(13, 27, 62, 0.16);
+  --muted: rgba(13, 27, 62, 0.55);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+
+  body {
+    color: var(--ink);
+    background: var(--paper);
+    font-family: var(--font-grotesk), 'Space Grotesk', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--green);
+    color: #000;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+
+  .font-grotesk { font-family: var(--font-grotesk), 'Space Grotesk', sans-serif; }
+  .font-serif-display {
+    font-family: var(--font-serif), 'Bodoni Moda', 'Didot', Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .font-serif-italic {
+    font-family: var(--font-serif), 'Bodoni Moda', 'Didot', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* Editorial italic accent — green */
+  .accent-it {
+    font-family: var(--font-serif), 'Bodoni Moda', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--green-deep);
+    letter-spacing: -0.025em;
+  }
+
+  /* Editorial dot eyebrow */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .eyebrow-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 99px;
+    background: var(--green);
+    margin-right: 10px;
+    vertical-align: 1px;
+    box-shadow: 0 0 0 4px rgba(46, 204, 82, 0.18);
+  }
+
+  /* Subtle slot grid (dark sections) */
+  .slot-grid-dark {
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  }
+}
+
+/* ── Form components — white card context ── */
+@layer components {
+  .form-input,
+  .form-select {
+    @apply w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50
+           text-sm text-ink outline-none
+           transition-all duration-200
+           focus:border-green-brand focus:bg-white focus:ring-2 focus:ring-green-brand/10;
+  }
+
+  .form-input::placeholder { @apply text-gray-400; }
+
+  .form-select {
+    @apply appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238A93A6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes marq {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marq { animation: marq 40s linear infinite; }
