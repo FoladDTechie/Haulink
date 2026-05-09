@@ -23,7 +23,7 @@ type PayMethod = 'ada' | 'card' | 'transfer'
 
 const AdaMark = ({ size = 40 }: { size?: number }) => (
   <div
-    className="relative rounded-full grid place-items-center flex-shrink-0"
+    className="ada-mark relative rounded-full grid place-items-center flex-shrink-0"
     style={{ width: size, height: size, background: '#0033AD' }}
   >
     <div className="rounded-full" style={{ width: size * 0.35, height: size * 0.35, background: 'rgba(255,255,255,0.92)' }} />
@@ -88,10 +88,10 @@ export function StepPayment({
         {/* Section i — methods */}
         <div className="mb-9">
           <div className="eyebrow mb-3.5 flex items-center gap-2.5">
-            <span className="font-serif-italic text-green-deep text-xl mr-1">i.</span>
+            <span className="font-serif-italic text-green-deep text-xl tracking-tight-2 mr-1">i.</span>
             Choose method
           </div>
-          <h3 className="font-serif-display text-ink leading-[1.1] tracking-[-0.04em] mb-6 text-balance" style={{ fontSize: 30 }}>
+          <h3 className="font-serif-display text-ink leading-[1.1] tracking-tight-2 mb-6 text-balance" style={{ fontSize: 30 }}>
             How would you like to <em className="font-serif-italic text-green-deep">pay?</em>
           </h3>
 
@@ -105,7 +105,7 @@ export function StepPayment({
                   ? 'border-[#0033AD] text-white'
                   : 'border-line-strong bg-white hover:border-ink',
               )}
-              style={payMethod === 'ada' ? { background: 'linear-gradient(120deg, #0A0F22, #0a1338)' } : undefined}
+              style={payMethod === 'ada' ? { background: 'linear-gradient(120deg, var(--color-ink, #0A0F22), #0a1338)' } : undefined}
             >
               <div className="flex items-center gap-4">
                 <AdaMark />
@@ -117,7 +117,7 @@ export function StepPayment({
                 </div>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="font-medium text-[15px]">
+                <span className="font-medium text-[15px] tracking-tight-2">
                   {adaAmount}<em className="font-serif-italic text-green-brand font-normal ml-1">₳</em>
                 </span>
                 <span className={cn(
@@ -152,7 +152,7 @@ export function StepPayment({
                 </div>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="font-medium text-[15px]">{formatNGN(totalNGN)}</span>
+                <span className="font-medium text-[15px] tracking-tight-2">{formatNGN(totalNGN)}</span>
                 <span className={cn(
                   'w-[18px] h-[18px] rounded-full border-[1.5px] grid place-items-center',
                   payMethod === 'card' ? 'border-white' : 'border-line-strong',
@@ -185,7 +185,7 @@ export function StepPayment({
                 </div>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="font-medium text-[15px]">{formatNGN(totalNGN)}</span>
+                <span className="font-medium text-[15px] tracking-tight-2">{formatNGN(totalNGN)}</span>
                 <span className={cn(
                   'w-[18px] h-[18px] rounded-full border-[1.5px] grid place-items-center',
                   payMethod === 'transfer' ? 'border-white' : 'border-line-strong',
@@ -207,10 +207,10 @@ export function StepPayment({
               className="overflow-hidden mb-9"
             >
               <div className="eyebrow mb-3.5 flex items-center gap-2.5">
-                <span className="font-serif-italic text-green-deep text-xl mr-1">ii.</span>
+                <span className="font-serif-italic text-green-deep text-xl tracking-tight-2 mr-1">ii.</span>
                 Wallet
               </div>
-              <h3 className="font-serif-display text-ink leading-[1.1] tracking-[-0.04em] mb-5 text-balance" style={{ fontSize: 30 }}>
+              <h3 className="font-serif-display text-ink leading-[1.1] tracking-tight-2 mb-5 text-balance" style={{ fontSize: 30 }}>
                 Connect a <em className="font-serif-italic text-green-deep">Cardano</em> wallet.
               </h3>
 
@@ -262,10 +262,10 @@ export function StepPayment({
         {/* Section iii — escrow */}
         <div>
           <div className="eyebrow mb-3.5 flex items-center gap-2.5">
-            <span className="font-serif-italic text-green-deep text-xl mr-1">iii.</span>
+            <span className="font-serif-italic text-green-deep text-xl tracking-tight-2 mr-1">iii.</span>
             Protection
           </div>
-          <h3 className="font-serif-display text-ink leading-[1.1] tracking-[-0.04em] mb-5 text-balance" style={{ fontSize: 30 }}>
+          <h3 className="font-serif-display text-ink leading-[1.1] tracking-tight-2 mb-5 text-balance" style={{ fontSize: 30 }}>
             Hold funds in <em className="font-serif-italic text-green-deep">escrow.</em>
           </h3>
 
@@ -275,13 +275,13 @@ export function StepPayment({
           >
             <div className="flex items-start gap-3.5">
               <div className="w-10 h-10 rounded-xl grid place-items-center flex-shrink-0"
-                style={{ background: 'rgba(46,204,82,0.1)', color: '#0e6a28' }}>
+                style={{ background: 'rgba(46,204,82,0.1)', color: 'var(--green-deep, #0e6a28)' }}>
                 <Shield size={18} />
               </div>
               <div>
                 <div className="font-medium text-[15px] text-ink mb-1 tracking-tight">
                   Escrow protection
-                  <span className="font-serif-italic text-green-deep font-normal ml-1.5">+ {formatNGN(escrowFeeNGN)}</span>
+                  <span className="font-serif-italic text-green-deep font-normal ml-1.5 tracking-tight-2">+ {formatNGN(escrowFeeNGN)}</span>
                 </div>
                 <p className="text-[12.5px] text-muted leading-[1.5] max-w-[38ch]">
                   Funds are held by Haulink and only released when the receiver confirms delivery via OTP. Anchored on‑chain.
@@ -313,8 +313,8 @@ export function StepPayment({
       {/* ── RIGHT — Summary ── */}
       <aside className="bg-paper rounded-3xl p-8 border border-white/[0.06] shadow-2xl shadow-black/40 lg:sticky lg:top-6">
         <div className="eyebrow mb-2.5">Final amount</div>
-        <div className="font-grotesk font-medium text-ink leading-none tracking-[-0.05em]" style={{ fontSize: 64 }}>
-          <span className="font-serif-italic text-green-deep font-normal mr-1.5 tracking-[-0.03em]" style={{ fontSize: 42, verticalAlign: 6 }}>₦</span>
+        <div className="font-grotesk font-medium text-ink leading-none tracking-tightest" style={{ fontSize: 64 }}>
+          <span className="font-serif-italic text-green-deep font-normal mr-1.5 tracking-tight-3" style={{ fontSize: 42, verticalAlign: 6 }}>₦</span>
           {formatNGN(totalNGN).replace('₦', '').trim()}
         </div>
 
@@ -322,7 +322,7 @@ export function StepPayment({
           style={{ background: 'rgba(0,51,173,0.06)', color: '#0033AD' }}>
           <div>
             <div className="text-[11px] tracking-[0.18em] uppercase font-medium opacity-70">ADA equivalent</div>
-            <div className="font-grotesk font-medium text-[22px] tracking-[-0.04em]">
+            <div className="font-grotesk font-medium text-[22px] tracking-tight-2">
               {adaAmount}<em className="font-serif-italic font-normal ml-1 opacity-80">₳</em>
             </div>
           </div>
@@ -334,22 +334,22 @@ export function StepPayment({
         <div className="flex flex-col">
           <div className="flex justify-between items-baseline py-2.5 text-[13.5px]">
             <span className="text-muted">Slot tier</span>
-            <span className="font-serif-italic text-green-deep text-[15px]">{tierName}</span>
+            <span className="font-serif-italic text-green-deep text-[15px] tracking-tight-2">{tierName}</span>
           </div>
           <div className="flex justify-between items-baseline py-2.5 border-t border-dashed border-line text-[13.5px]">
             <span className="text-muted">Cargo slot</span>
-            <span className="font-grotesk font-medium text-ink">{formatNGN(basePriceNGN)}</span>
+            <span className="font-grotesk font-medium text-ink tracking-tight">{formatNGN(basePriceNGN)}</span>
           </div>
           {form.escrow_enabled && (
             <div className="flex justify-between items-baseline py-2.5 border-t border-dashed border-line text-[13.5px]">
               <span className="text-muted">Escrow protection</span>
-              <span className="font-grotesk font-medium text-ink">{formatNGN(escrowFeeNGN)}</span>
+              <span className="font-grotesk font-medium text-ink tracking-tight">{formatNGN(escrowFeeNGN)}</span>
             </div>
           )}
           {payMethod === 'ada' && (
             <div className="flex justify-between items-baseline py-2.5 border-t border-dashed border-line text-[13.5px]">
               <span className="text-muted">Network fee · Cardano</span>
-              <span className="font-grotesk font-medium text-ink">~ 0.17 ₳</span>
+              <span className="font-grotesk font-medium text-ink tracking-tight">~ 0.17 ₳</span>
             </div>
           )}
         </div>
