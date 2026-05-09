@@ -253,7 +253,7 @@ function Footer() {
               <h5 className="text-[11px] tracking-[0.22em] uppercase font-medium mb-5" style={{ color: 'rgba(255,255,255,0.4)' }}>{col.h}</h5>
               <div className="space-y-1.5">
                 {col.items.map((it) => (
-                  it.href ? (
+                  'href' in it ? (
                     <Link key={it.l} href={it.href} className="block text-[14px] py-1.5 transition-colors hover:text-green-brand"
                       style={{ color: 'rgba(255,255,255,0.7)' }}>{it.l}</Link>
                   ) : (
