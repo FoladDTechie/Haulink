@@ -77,16 +77,16 @@ function BookingContent() {
             <h1 className="font-grotesk font-medium leading-[0.95] tracking-[-0.045em] text-white"
               style={{ fontSize: 'clamp(48px, 7vw, 96px)' }}>
               {step === 1 && <>Tell us your <span className="font-serif-italic text-green-brand font-normal">cargo.</span></>}
-              {step === 2 && <>Who&apos;s <span className="font-serif-italic text-green-brand font-normal">sending</span> &amp; receiving?</>}
+              {step === 2 && <>Who's <span className="font-serif-italic text-green-brand font-normal">sending</span> &amp; receiving?</>}
               {step === 3 && <>Pay <span className="font-serif-italic text-green-brand font-normal">securely.</span></>}
-              {step === 4 && <>You&apos;re <span className="font-serif-italic text-green-brand font-normal">booked.</span></>}
+              {step === 4 && <>You're <span className="font-serif-italic text-green-brand font-normal">booked.</span></>}
             </h1>
           </div>
           {step < 4 && (
             <p className="font-serif-italic text-[22px] leading-[1.3] max-w-[34ch] tracking-[-0.01em]"
               style={{ color: 'rgba(255,255,255,0.7)' }}>
               {form.origin && form.destination
-                ? <>{`Trip `}<em className="not-italic font-grotesk text-green-brand">{trackingCode || '0421'}</em>{` · ${form.origin} `}<span className="text-green-brand mx-1.5">→</span>{` ${form.destination} · ${tier.name} · ETA ${tier.id === 'bulk' ? '3' : '2'} days.`}</>
+                ? <>Trip <em className="not-italic font-grotesk text-green-brand">{trackingCode || '0421'}</em> · {form.origin} <span className="text-green-brand mx-1.5">→</span> {form.destination} · {tier.name} · ETA {tier.id === 'bulk' ? '3' : '2'} days.</>
                 : <>A standardized slot, predictable price, on‑chain proof of delivery.</>
               }
             </p>
@@ -181,14 +181,14 @@ function BookingContent() {
           </div>
         )}
 
-        {/* Trust note */}
+        {/* Note */}
         {step === 3 && (
           <div className="mt-12 pt-7 border-t border-white/10 flex justify-between items-end gap-8 flex-wrap"
             style={{ color: 'rgba(255,255,255,0.55)' }}>
             <p className="font-serif-italic text-[18px] leading-[1.4] max-w-[42ch] tracking-[-0.005em]"
               style={{ color: 'rgba(255,255,255,0.75)' }}>
-              <span className="text-green-brand text-[32px] leading-none align-[-10px] mr-1.5">&ldquo;</span>
-              Funds never touch a driver&apos;s pocket. They sit in escrow, on‑chain, and only release when your receiver confirms delivery — never before.
+              <span className="text-green-brand text-[32px] leading-none align-[-10px] mr-1.5">“</span>
+              Funds never touch a driver's pocket. They sit in escrow, on‑chain, and only release when your receiver confirms delivery — never before.
             </p>
             <div className="flex gap-3.5 flex-wrap">
               {['PCI‑compliant', 'Cardano‑anchored', 'Support 24 / 7'].map((b) => (
@@ -206,6 +206,7 @@ function BookingContent() {
   )
 }
 
+// tiny local cn so file is self-contained for the patch
 function cn(...c: Array<string | false | undefined>) { return c.filter(Boolean).join(' ') }
 
 export default function BookPage() {
