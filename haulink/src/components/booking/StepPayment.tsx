@@ -33,7 +33,7 @@ export function StepPayment({
   const [selectedWallet, setSelectedWallet]       = useState<WalletName | null>(null)
   const [adaState, setAdaState]                   = useState({ isSending: false, error: null as string | null, txHash: null as string | null })
 
-  // Detect installed wallets — client only
+  // Detect installed wallets — client only1
   useEffect(() => { setAvailableWallets(getAvailableWallets()) }, [])
 
   const handlePay = async () => {
