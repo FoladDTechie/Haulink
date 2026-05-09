@@ -110,5 +110,6 @@ export function useCardanoPayment() {
 export function getAvailableWallets(): WalletName[] {
   if (typeof window === 'undefined') return []
   const wallets: WalletName[] = ['nami', 'eternl', 'lace', 'yoroi']
-  return wallets.filter(w => !!(window as Record<string, unknown>).cardano?.[w])
+  const cardano = (window as Record<string, Record<string, unknown>>).cardano
+  return wallets.filter(w => !!cardano?.[w])
 }
