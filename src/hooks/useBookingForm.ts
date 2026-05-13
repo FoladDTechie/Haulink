@@ -5,6 +5,7 @@ import type { BookingFormData, TierId } from '@/types'
 import { generateTrackingCode } from '@/lib/utils'
 import { SLOT_TIERS } from '@/lib/constants'
 import { createShipment } from '@/lib/supabase'
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 export type BookingStep = 1 | 2 | 3 | 4  // cargo | people | payment | confirm
 
@@ -61,6 +62,9 @@ export function useBookingForm(initialTier?: TierId) {
       try {
         const code = generateTrackingCode(form.origin)
 
+        const supabase = createSupabaseBrowserClient()
+        const { data: { session } } = await supabase.auth.getSession()
+
         const payload = {
           tracking_code: code,
           tier_id: form.tier_id,
@@ -79,6 +83,7 @@ export function useBookingForm(initialTier?: TierId) {
           escrow_enabled: form.escrow_enabled,
           amount_ngn: totalNGN,
           cardano_tx_hash: cardanoTxHash || null,
+          user_id: session?.user?.id ?? null,
         }
 
         // In dev without Supabase configured, generate code locally
