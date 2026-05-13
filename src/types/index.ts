@@ -52,6 +52,7 @@ export interface Shipment {
   pod_photo_url?: string
   pod_receiver_name?: string
   pod_timestamp?: string
+  user_id: string | null
   created_at: string
   updated_at: string
 }

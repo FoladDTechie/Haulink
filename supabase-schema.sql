@@ -54,6 +54,10 @@ create table if not exists shipments (
   updated_at      timestamptz default now()
 );
 
+-- ── Auth user linkage (run after initial schema creation) ────
+alter table shipments add column if not exists user_id uuid references auth.users(id);
+create index if not exists shipments_user_id_idx on shipments(user_id);
+
 -- ── Indexes ───────────────────────────────────────────────────
 create index if not exists shipments_tracking_code_idx on shipments(tracking_code);
 create index if not exists shipments_status_idx on shipments(status);

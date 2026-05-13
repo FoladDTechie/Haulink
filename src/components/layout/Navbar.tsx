@@ -1,9 +1,32 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowRight, LogOut } from 'lucide-react'
+import type { User } from '@supabase/supabase-js'
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 export function Navbar() {
+  const router = useRouter()
+  const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient()
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    const supabase = createSupabaseBrowserClient()
+    await supabase.auth.signOut()
+    router.push('/')
+    router.refresh()
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-line backdrop-blur"
       style={{ background: 'rgba(251,249,244,0.78)' }}>
@@ -26,10 +49,33 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <Link href="/book" className="inline-flex items-center gap-2.5 bg-ink text-white font-medium text-[13.5px] px-5 py-2.5 rounded-full hover:-translate-y-px hover:bg-green-deep transition-all">
-          Book a slot
-          <ArrowRight size={14} />
-        </Link>
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <span className="hidden md:block text-[13px] font-medium text-ink">
+                {user.user_metadata?.full_name?.split(' ')[0] ?? user.email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 text-[13px] font-medium px-4 py-2 rounded-full border border-line hover:border-ink/20 transition-all"
+                style={{ color: 'rgba(13,27,62,0.55)' }}
+              >
+                <LogOut size={13} />
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link href="/auth/login"
+              className="text-[13.5px] font-medium transition-colors"
+              style={{ color: 'rgba(13,27,62,0.55)' }}>
+              Sign in
+            </Link>
+          )}
+          <Link href="/book" className="inline-flex items-center gap-2.5 bg-ink text-white font-medium text-[13.5px] px-5 py-2.5 rounded-full hover:-translate-y-px hover:bg-green-deep transition-all">
+            Book a slot
+            <ArrowRight size={14} />
+          </Link>
+        </div>
       </div>
     </header>
   )
