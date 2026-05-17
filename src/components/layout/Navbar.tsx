@@ -5,14 +5,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, LogOut } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
 
 export function Navbar() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient()
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
@@ -21,7 +20,6 @@ export function Navbar() {
   }, [])
 
   const handleLogout = async () => {
-    const supabase = createSupabaseBrowserClient()
     await supabase.auth.signOut()
     router.push('/')
     router.refresh()
