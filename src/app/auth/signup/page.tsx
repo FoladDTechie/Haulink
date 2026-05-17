@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -19,7 +19,6 @@ export default function SignupPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    const supabase = createSupabaseBrowserClient()
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,

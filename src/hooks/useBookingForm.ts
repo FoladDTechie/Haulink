@@ -5,7 +5,7 @@ import type { BookingFormData, TierId } from '@/types'
 import { generateTrackingCode } from '@/lib/utils'
 import { SLOT_TIERS } from '@/lib/constants'
 import { createShipment } from '@/lib/supabase'
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { supabase } from '@/lib/supabase-browser'
 
 export type BookingStep = 1 | 2 | 3 | 4  // cargo | people | payment | confirm
 
@@ -62,7 +62,6 @@ export function useBookingForm(initialTier?: TierId) {
       try {
         const code = generateTrackingCode(form.origin)
 
-        const supabase = createSupabaseBrowserClient()
         const { data: { session } } = await supabase.auth.getSession()
 
         const payload = {
