@@ -57,10 +57,24 @@ export interface Shipment {
   updated_at: string
 }
 
+// ── Trip ─────────────────────────────────────────────────────
+export interface Trip {
+  id: string
+  reference: string
+  origin: string
+  destination: string
+  departure_date: string
+  estimated_arrival: string
+  status: string
+  total_slots: number
+}
+
 // ── Booking Form State ────────────────────────────────────────
 export interface BookingFormData {
   // Step 1 — Cargo
   tier_id: TierId
+  trip_id: string
+  trip_reference: string
   origin: string
   destination: string
   cargo_type: string

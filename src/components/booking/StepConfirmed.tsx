@@ -12,9 +12,11 @@ interface Props {
   origin: string
   destination: string
   cardanoTxHash?: string
+  slotNumber?: number
+  tripReference?: string
 }
 
-export function StepConfirmed({ trackingCode, origin, destination, cardanoTxHash }: Props) {
+export function StepConfirmed({ trackingCode, origin, destination, cardanoTxHash, slotNumber, tripReference }: Props) {
   const trackingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/track/${trackingCode}`
 
   const share = async () => {
@@ -63,12 +65,19 @@ export function StepConfirmed({ trackingCode, origin, destination, cardanoTxHash
       {/* Tracking code */}
       <div className="bg-dark rounded-2xl px-8 py-5 inline-block mb-3">
         <div className="text-[10px] text-white/35 uppercase tracking-widest mb-2">
-          Tracking Code
+          Booking Reference
         </div>
         <div className="font-mono font-bold text-2xl tracking-[0.12em] text-green-brand">
           {trackingCode}
         </div>
-        <div className="text-white/30 text-xs mt-2">
+        {(slotNumber != null || tripReference) && (
+          <div className="text-white/55 text-xs font-medium mt-2">
+            {slotNumber != null && `Slot ${String(slotNumber).padStart(2, '0')}`}
+            {slotNumber != null && tripReference && ' · '}
+            {tripReference && `Trip ${tripReference}`}
+          </div>
+        )}
+        <div className="text-white/30 text-xs mt-1.5">
           {origin} &rarr; {destination}
         </div>
       </div>
