@@ -5,20 +5,20 @@ import type { Shipment } from '@/types'
 
 export default async function DashboardPage() {
   const supabase = createSupabaseServerClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect('/auth/login')
   }
 
   const { data: shipments } = await supabase
     .from('shipments')
     .select('*')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   const userName: string =
-    session.user.user_metadata?.full_name ?? session.user.email ?? 'Merchant'
+    user.user_metadata?.full_name ?? user.email ?? 'Merchant'
 
   return (
     <DashboardContent

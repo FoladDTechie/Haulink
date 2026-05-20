@@ -32,7 +32,7 @@ function BookingContent() {
   const validTier = SLOT_TIERS.find(t => t.id === tierParam)?.id
 
   const {
-    step, form, tier, totalNGN, isSubmitting, trackingCode, error,
+    step, form, tier, totalNGN, isSubmitting, trackingCode, slotNumber, error,
     update, prevStep, nextStep, submit,
   } = useBookingForm(validTier)
 
@@ -169,6 +169,8 @@ function BookingContent() {
                   trackingCode={trackingCode}
                   origin={form.origin}
                   destination={form.destination}
+                  slotNumber={slotNumber ?? undefined}
+                  tripReference={form.trip_reference || undefined}
                 />
               </div>
             )}

@@ -4,13 +4,15 @@ import { useState, useCallback } from 'react'
 import type { BookingFormData, TierId } from '@/types'
 import { generateTrackingCode } from '@/lib/utils'
 import { SLOT_TIERS } from '@/lib/constants'
-import { createShipment } from '@/lib/supabase'
+import { createShipment, bookSlot } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase-browser'
 
 export type BookingStep = 1 | 2 | 3 | 4  // cargo | people | payment | confirm
 
 const initialData: BookingFormData = {
   tier_id: 'half',
+  trip_id: '',
+  trip_reference: '',
   origin: '',
   destination: '',
   cargo_type: '',
@@ -32,6 +34,7 @@ export function useBookingForm(initialTier?: TierId) {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [trackingCode, setTrackingCode] = useState<string | null>(null)
+  const [slotNumber, setSlotNumber] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const tier = SLOT_TIERS.find(t => t.id === form.tier_id)!
@@ -60,12 +63,10 @@ export function useBookingForm(initialTier?: TierId) {
       setError(null)
 
       try {
-        const code = generateTrackingCode(form.origin)
-
         const { data: { session } } = await supabase.auth.getSession()
+        const userId = session?.user?.id ?? null
 
-        const payload = {
-          tracking_code: code,
+        const basePayload = {
           tier_id: form.tier_id,
           origin: form.origin,
           destination: form.destination,
@@ -82,17 +83,22 @@ export function useBookingForm(initialTier?: TierId) {
           escrow_enabled: form.escrow_enabled,
           amount_ngn: totalNGN,
           cardano_tx_hash: cardanoTxHash || null,
-          user_id: session?.user?.id ?? null,
         }
 
-        // In dev without Supabase configured, generate code locally
-        try {
-          await createShipment(payload)
-        } catch {
-          console.warn('Supabase not configured — using local tracking code')
+        if (form.trip_id) {
+          const result = await bookSlot(form.trip_id, form.tier_id, userId, basePayload)
+          setTrackingCode(result.bookingReference)
+          setSlotNumber(result.slotNumber)
+        } else {
+          const code = generateTrackingCode(form.origin)
+          try {
+            await createShipment({ ...basePayload, tracking_code: code, user_id: userId })
+          } catch {
+            console.warn('Supabase not configured — using local tracking code')
+          }
+          setTrackingCode(code)
         }
 
-        setTrackingCode(code)
         setStep(4)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Booking failed')
@@ -107,6 +113,7 @@ export function useBookingForm(initialTier?: TierId) {
     setForm(initialData)
     setStep(1)
     setTrackingCode(null)
+    setSlotNumber(null)
     setError(null)
   }, [])
 
@@ -117,6 +124,7 @@ export function useBookingForm(initialTier?: TierId) {
     totalNGN,
     isSubmitting,
     trackingCode,
+    slotNumber,
     error,
     update,
     nextStep,
