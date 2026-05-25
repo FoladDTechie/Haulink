@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-import type { Trip } from '@/types'
+import type { Trip, ShipmentStatus } from '@/types'
 
 export default async function AdminPage() {
   const supabase = createSupabaseServerClient()
@@ -12,12 +12,24 @@ export default async function AdminPage() {
     redirect('/')
   }
 
-  const { data: trips } = await supabase
-    .from('trips')
-    .select('id, reference, origin, destination, departure_date, status, total_slots')
-    .order('departure_date', { ascending: false })
+  const [{ data: trips }, { data: statusRows }] = await Promise.all([
+    supabase
+      .from('trips')
+      .select('id, reference, origin, destination, departure_date, status, total_slots')
+      .order('departure_date', { ascending: false }),
+    supabase
+      .from('shipments')
+      .select('status'),
+  ])
 
   const tripList = (trips ?? []) as Pick<Trip, 'id' | 'reference' | 'origin' | 'destination' | 'departure_date' | 'status' | 'total_slots'>[]
+  const rows = (statusRows ?? []) as Array<{ status: ShipmentStatus }>
+
+  const shipmentCounts = {
+    total:      rows.length,
+    inTransit:  rows.filter(r => r.status === 'in_transit').length,
+    delivered:  rows.filter(r => r.status === 'delivered').length,
+  }
 
   return (
     <div className="min-h-screen bg-ink relative overflow-hidden font-grotesk">
@@ -25,7 +37,7 @@ export default async function AdminPage() {
 
       <div className="relative z-10 max-w-[1240px] mx-auto px-8 py-16">
         {/* Header */}
-        <div className="flex items-end justify-between mb-12">
+        <div className="flex items-end justify-between mb-10">
           <div>
             <div className="eyebrow mb-4 flex items-center gap-2.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
               <span className="w-1.5 h-1.5 rounded-full bg-green-brand"
@@ -33,7 +45,7 @@ export default async function AdminPage() {
               Admin
             </div>
             <h1 className="font-grotesk font-medium text-white leading-none tracking-[-0.04em] text-[56px]">
-              Trip <em className="font-serif-italic text-green-brand font-normal">management.</em>
+              Operations <em className="font-serif-italic text-green-brand font-normal">hub.</em>
             </h1>
           </div>
           <Link
@@ -41,6 +53,41 @@ export default async function AdminPage() {
             className="inline-flex items-center gap-2.5 bg-green-brand text-ink font-medium text-[13.5px] px-6 py-3 rounded-full hover:-translate-y-px transition-all"
           >
             + New trip
+          </Link>
+        </div>
+
+        {/* Quick nav cards */}
+        <div className="grid grid-cols-2 gap-4 mb-10">
+          {/* Trips — current page */}
+          <div className="rounded-2xl px-6 py-5 border border-white/10 bg-white/5">
+            <div className="text-[11px] tracking-[0.18em] uppercase font-medium mb-3" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              Trip management
+            </div>
+            <div className="font-grotesk font-medium text-white text-[22px] tracking-[-0.03em] mb-1">
+              {tripList.length} trip{tripList.length !== 1 ? 's' : ''}
+            </div>
+            <div className="text-[12px]" style={{ color: 'rgba(255,255,255,0.35)' }}>Current page</div>
+          </div>
+
+          {/* Shipments — link */}
+          <Link
+            href="/admin/shipments"
+            className="group rounded-2xl px-6 py-5 border border-white/10 bg-white/5 hover:border-green-brand/40 hover:bg-white/[0.08] transition-all"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-[11px] tracking-[0.18em] uppercase font-medium" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                Shipment tracking
+              </div>
+              <span className="text-green-brand text-[13px] group-hover:translate-x-0.5 transition-transform">→</span>
+            </div>
+            <div className="font-grotesk font-medium text-white text-[22px] tracking-[-0.03em] mb-2">
+              {shipmentCounts.total} shipment{shipmentCounts.total !== 1 ? 's' : ''}
+            </div>
+            <div className="flex gap-3 text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <span>{shipmentCounts.inTransit} in transit</span>
+              <span>·</span>
+              <span>{shipmentCounts.delivered} delivered</span>
+            </div>
           </Link>
         </div>
 

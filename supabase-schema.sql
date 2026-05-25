@@ -160,6 +160,57 @@ create policy "Public read booking_slots"  on booking_slots for select using (tr
 */
 
 -- =========================================================
+-- slot_events — status history log (run in SQL Editor)
+-- =========================================================
+
+/*
+CREATE TABLE IF NOT EXISTS slot_events (
+  id          uuid primary key default uuid_generate_v4(),
+  slot_id     uuid not null references slots(id) on delete cascade,
+  status      text not null,
+  note        text,
+  recorded_by uuid references auth.users(id),
+  created_at  timestamptz default now()
+);
+
+CREATE INDEX IF NOT EXISTS slot_events_slot_id_idx ON slot_events(slot_id);
+
+ALTER TABLE slot_events ENABLE ROW LEVEL SECURITY;
+
+-- NOTE: The slots.status check constraint only allows 'available','booked','occupied'.
+-- Extend it to support shipment lifecycle statuses if needed:
+-- ALTER TABLE slots DROP CONSTRAINT IF EXISTS slots_status_check;
+-- ALTER TABLE slots ADD CONSTRAINT slots_status_check
+--   CHECK (status IN ('available','booked','occupied','loaded','in_transit','arrived','delivered'));
+*/
+
+-- =========================================================
+-- RLS policies for operator/admin flow (run in SQL Editor)
+-- =========================================================
+
+/*
+-- Admin can update shipments
+CREATE POLICY "Admin can update shipments"
+  ON shipments FOR UPDATE
+  USING (auth.role() = 'authenticated');
+
+-- Admin can insert slot_events
+CREATE POLICY "Admin can insert slot_events"
+  ON slot_events FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- Public can read slot_events
+CREATE POLICY "Public can read slot_events"
+  ON slot_events FOR SELECT
+  USING (true);
+
+-- Admin can update slots
+CREATE POLICY "Admin can update slot status"
+  ON slots FOR UPDATE
+  USING (auth.role() = 'authenticated');
+*/
+
+-- =========================================================
 -- reserve_slot — atomic slot reservation (run in SQL Editor)
 -- =========================================================
 

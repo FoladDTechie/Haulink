@@ -5,30 +5,51 @@ import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Package, CheckCircle2, Circle, Loader2 } from 'lucide-react'
 import { Navbar } from '@/components/layout/Navbar'
-import { getShipmentByCode, subscribeToShipment } from '@/lib/supabase'
+import { getShipmentByCode, subscribeToShipment, getSlotEvents } from '@/lib/supabase'
 import { SHIPMENT_MILESTONES } from '@/lib/constants'
 import { getStatusIndex, formatNGN } from '@/lib/utils'
-import type { Shipment } from '@/types'
+import type { Shipment, SlotEvent } from '@/types'
 
 export default function TrackPage() {
   const { code } = useParams() as { code: string }
-  const [shipment, setShipment] = useState<Shipment | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [shipment, setShipment]     = useState<Shipment | null>(null)
+  const [slotEvents, setSlotEvents] = useState<SlotEvent[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState<string | null>(null)
 
   useEffect(() => {
-    // Initial fetch
-    getShipmentByCode(code)
-      .then(setShipment)
-      .catch(() => setError('Shipment not found. Check your tracking code.'))
-      .finally(() => setLoading(false))
+    let cancelled = false
 
-    // Realtime subscription via Supabase
-    const channel = subscribeToShipment(code, (updated) => {
+    async function init() {
+      try {
+        const s = await getShipmentByCode(code)
+        if (cancelled) return
+        setShipment(s as Shipment)
+
+        const events = await getSlotEvents((s as Shipment).id)
+        if (!cancelled) setSlotEvents(events)
+      } catch {
+        if (!cancelled) setError('Shipment not found. Check your tracking code.')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    init()
+
+    const channel = subscribeToShipment(code, async (updated) => {
       setShipment(prev => ({ ...prev!, ...(updated as Partial<Shipment>) }))
+      const updatedId = (updated as Record<string, unknown>).id as string | undefined
+      if (updatedId && !cancelled) {
+        const events = await getSlotEvents(updatedId)
+        if (!cancelled) setSlotEvents(events)
+      }
     })
 
-    return () => { channel.unsubscribe() }
+    return () => {
+      cancelled = true
+      channel.unsubscribe()
+    }
   }, [code])
 
   if (loading) return <LoadingState />
@@ -65,8 +86,7 @@ export default function TrackPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-2xl shadow-lg shadow-navy/6 p-6 mb-4
-                     border border-navy/6"
+          className="bg-white rounded-2xl shadow-lg shadow-navy/6 p-6 mb-4 border border-navy/6"
         >
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -77,8 +97,7 @@ export default function TrackPage() {
                 {shipment.status.replace('_', ' ')}
               </div>
             </div>
-            <div className="w-10 h-10 rounded-full bg-green-brand/10 flex items-center
-                            justify-center">
+            <div className="w-10 h-10 rounded-full bg-green-brand/10 flex items-center justify-center">
               <Package size={18} className="text-green-dark" />
             </div>
           </div>
@@ -86,7 +105,7 @@ export default function TrackPage() {
           {/* Milestone timeline */}
           <div className="space-y-3">
             {SHIPMENT_MILESTONES.map((milestone, i) => {
-              const done = i < statusIdx
+              const done   = i < statusIdx
               const active = i === statusIdx
               return (
                 <motion.div
@@ -96,7 +115,6 @@ export default function TrackPage() {
                   transition={{ delay: 0.05 * i }}
                   className="flex items-center gap-4"
                 >
-                  {/* Icon */}
                   <div className="flex-shrink-0">
                     {done ? (
                       <CheckCircle2 size={20} className="text-green-brand" />
@@ -111,8 +129,6 @@ export default function TrackPage() {
                       <Circle size={20} className="text-navy/15" />
                     )}
                   </div>
-
-                  {/* Connector */}
                   <div className="flex-1">
                     <div className={`text-sm font-semibold ${
                       active ? 'text-navy' : done ? 'text-navy/60' : 'text-navy/25'
@@ -120,11 +136,8 @@ export default function TrackPage() {
                       {milestone.label}
                     </div>
                   </div>
-
-                  {/* Active badge */}
                   {active && (
-                    <span className="text-xs bg-navy text-white px-2.5 py-1 rounded-full
-                                     font-semibold">
+                    <span className="text-xs bg-navy text-white px-2.5 py-1 rounded-full font-semibold">
                       Now
                     </span>
                   )}
@@ -144,12 +157,12 @@ export default function TrackPage() {
           <div className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-4">
             Shipment Details
           </div>
-          <DetailRow label="Cargo" value={shipment.cargo_type} />
-          <DetailRow label="Slot Tier" value={shipment.tier_id.toUpperCase()} />
+          <DetailRow label="Cargo"       value={shipment.cargo_type} />
+          <DetailRow label="Slot Tier"   value={shipment.tier_id.toUpperCase()} />
           <DetailRow label="Pickup Date" value={shipment.pickup_date} />
-          <DetailRow label="Sender" value={shipment.sender_name} />
-          <DetailRow label="Receiver" value={shipment.receiver_name} />
-          <DetailRow label="Amount" value={formatNGN(shipment.amount_ngn)} />
+          <DetailRow label="Sender"      value={shipment.sender_name} />
+          <DetailRow label="Receiver"    value={shipment.receiver_name} />
+          <DetailRow label="Amount"      value={formatNGN(shipment.amount_ngn)} />
           {shipment.escrow_enabled && (
             <DetailRow label="Escrow" value="🔒 Active" />
           )}
@@ -163,9 +176,45 @@ export default function TrackPage() {
           )}
         </motion.div>
 
+        {/* Status History */}
+        {slotEvents.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-2xl p-6 border border-navy/6 mt-4"
+          >
+            <div className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-4">
+              Status History
+            </div>
+            <div className="space-y-3">
+              {slotEvents.map((event) => {
+                const ts = new Date(event.created_at).toLocaleString('en-GB', {
+                  day: 'numeric', month: 'short', year: 'numeric',
+                  hour: '2-digit', minute: '2-digit',
+                })
+                return (
+                  <div key={event.id} className="flex items-start gap-3 text-sm">
+                    <span className="text-gray-400 whitespace-nowrap font-mono text-xs pt-0.5">{ts}</span>
+                    <span className="text-navy/30">·</span>
+                    <span className="font-semibold text-navy capitalize">
+                      {event.status.replace('_', ' ')}
+                    </span>
+                    {event.note && (
+                      <>
+                        <span className="text-navy/30">—</span>
+                        <span className="text-navy/60">{event.note}</span>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+
         {/* Realtime indicator */}
-        <div className="text-center mt-6 flex items-center justify-center gap-2
-                        text-xs text-gray-400">
+        <div className="text-center mt-6 flex items-center justify-center gap-2 text-xs text-gray-400">
           <span className="w-1.5 h-1.5 bg-green-brand rounded-full animate-pulse-dot" />
           Live updates enabled
         </div>
@@ -206,8 +255,7 @@ function ErrorState({ code, message }: { code: string; message: string | null })
           {message || `No shipment found for code "${code}".`}
         </p>
         <a href="/track"
-           className="inline-flex items-center gap-2 bg-navy text-white px-6 py-3 rounded-xl
-                      font-display font-bold text-sm hover:bg-navy-mid transition-all">
+           className="inline-flex items-center gap-2 bg-navy text-white px-6 py-3 rounded-xl font-display font-bold text-sm hover:bg-navy-mid transition-all">
           Try another code
         </a>
       </div>

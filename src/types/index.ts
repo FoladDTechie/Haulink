@@ -104,6 +104,16 @@ export interface TradeRoute {
   active: boolean
 }
 
+// ── Slot Event ───────────────────────────────────────────────
+export interface SlotEvent {
+  id: string
+  slot_id: string
+  status: ShipmentStatus
+  note: string | null
+  recorded_by: string | null
+  created_at: string
+}
+
 // ── Merchant ──────────────────────────────────────────────────
 export interface Merchant {
   id: string
