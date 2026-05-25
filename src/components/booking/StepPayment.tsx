@@ -76,6 +76,9 @@ export function StepPayment({
   const adaAmount = ngnToAda(totalNGN)
   const isLoading = isSubmitting || cardano.isSending
   const canPay = payMethod !== 'ada' || !!selectedWallet
+  const isDemoMode =
+    process.env.NODE_ENV === 'development' ||
+    process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
   const allWallets: WalletName[] = ['nami', 'eternl', 'lace', 'yoroi'] as WalletName[]
 
@@ -367,6 +370,16 @@ export function StepPayment({
             <ArrowRight size={14} />
           </span>
         </button>
+
+        {isDemoMode && (
+          <button
+            onClick={() => onSubmit()}
+            disabled={isLoading}
+            className="w-full mt-3 text-[12px] text-muted hover:text-ink font-grotesk py-2 border border-dashed border-line rounded-full transition-colors disabled:opacity-40"
+          >
+            Skip payment (demo mode)
+          </button>
+        )}
 
         <div className="flex justify-between items-center mt-3.5 text-[11px] text-muted tracking-[0.06em]">
           <span className="text-green-deep font-medium flex items-center gap-1.5">

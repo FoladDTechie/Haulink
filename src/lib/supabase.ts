@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase-browser'
-import type { Trip } from '@/types'
+import type { Trip, SlotEvent } from '@/types'
 
 // ── Shipment helpers ──────────────────────────────────────────
 
@@ -60,6 +60,26 @@ export function subscribeToShipment(
       (payload) => callback(payload.new)
     )
     .subscribe()
+}
+
+// ── Slot events ───────────────────────────────────────────────
+
+export async function getSlotEvents(shipmentId: string): Promise<SlotEvent[]> {
+  const { data: bookingSlots } = await supabase
+    .from('booking_slots')
+    .select('slot_id')
+    .eq('shipment_id', shipmentId)
+
+  const slotIds = (bookingSlots ?? []).map((r: { slot_id: string }) => r.slot_id)
+  if (slotIds.length === 0) return []
+
+  const { data: events } = await supabase
+    .from('slot_events')
+    .select('*')
+    .in('slot_id', slotIds)
+    .order('created_at', { ascending: true })
+
+  return (events ?? []) as SlotEvent[]
 }
 
 // ── Trip helpers ──────────────────────────────────────────────
