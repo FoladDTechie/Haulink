@@ -211,6 +211,30 @@ CREATE POLICY "Admin can update slot status"
 */
 
 -- =========================================================
+-- pod_records — allow null slot_id for shipments without booking_slots
+-- Run in SQL Editor:
+--   ALTER TABLE pod_records ALTER COLUMN slot_id DROP NOT NULL;
+-- =========================================================
+
+-- =========================================================
+-- pod_records RLS policies (run in SQL Editor after creating the table)
+-- =========================================================
+
+/*
+CREATE POLICY "Admin can insert pod_records"
+  ON pod_records FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Public can read pod_records"
+  ON pod_records FOR SELECT
+  USING (true);
+
+CREATE POLICY "Admin can update pod_records"
+  ON pod_records FOR UPDATE
+  USING (auth.role() = 'authenticated');
+*/
+
+-- =========================================================
 -- reserve_slot — atomic slot reservation (run in SQL Editor)
 -- =========================================================
 

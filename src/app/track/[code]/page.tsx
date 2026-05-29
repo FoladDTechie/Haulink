@@ -3,17 +3,28 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { Package, CheckCircle2, Circle, Loader2 } from 'lucide-react'
 import { Navbar } from '@/components/layout/Navbar'
-import { getShipmentByCode, subscribeToShipment, getSlotEvents } from '@/lib/supabase'
+import {
+  getShipmentByCode,
+  subscribeToShipment,
+  getSlotEvents,
+  getShipmentPOD,
+  getShipmentSlotInfo,
+} from '@/lib/supabase'
 import { SHIPMENT_MILESTONES } from '@/lib/constants'
 import { getStatusIndex, formatNGN } from '@/lib/utils'
-import type { Shipment, SlotEvent } from '@/types'
+import type { Shipment, SlotEvent, PODRecord } from '@/types'
 
 export default function TrackPage() {
   const { code } = useParams() as { code: string }
   const [shipment, setShipment]     = useState<Shipment | null>(null)
   const [slotEvents, setSlotEvents] = useState<SlotEvent[]>([])
+  const [podRecord, setPodRecord]   = useState<PODRecord | null>(null)
+  const [slotInfo, setSlotInfo]     = useState<{ slotNumber: number | null; tripReference: string | null }>({
+    slotNumber: null, tripReference: null,
+  })
   const [loading, setLoading]       = useState(true)
   const [error, setError]           = useState<string | null>(null)
 
@@ -26,8 +37,19 @@ export default function TrackPage() {
         if (cancelled) return
         setShipment(s as Shipment)
 
-        const events = await getSlotEvents((s as Shipment).id)
-        if (!cancelled) setSlotEvents(events)
+        const shipmentId = (s as Shipment).id
+
+        const [events, pod, info] = await Promise.all([
+          getSlotEvents(shipmentId),
+          (s as Shipment).status === 'delivered' ? getShipmentPOD(shipmentId) : Promise.resolve(null),
+          getShipmentSlotInfo(shipmentId),
+        ])
+
+        if (!cancelled) {
+          setSlotEvents(events)
+          setPodRecord(pod)
+          setSlotInfo(info)
+        }
       } catch {
         if (!cancelled) setError('Shipment not found. Check your tracking code.')
       } finally {
@@ -41,8 +63,16 @@ export default function TrackPage() {
       setShipment(prev => ({ ...prev!, ...(updated as Partial<Shipment>) }))
       const updatedId = (updated as Record<string, unknown>).id as string | undefined
       if (updatedId && !cancelled) {
-        const events = await getSlotEvents(updatedId)
-        if (!cancelled) setSlotEvents(events)
+        const [events, pod] = await Promise.all([
+          getSlotEvents(updatedId),
+          (updated as { status?: string }).status === 'delivered'
+            ? getShipmentPOD(updatedId)
+            : Promise.resolve(null),
+        ])
+        if (!cancelled) {
+          setSlotEvents(events)
+          if (pod !== null) setPodRecord(pod)
+        }
       }
     })
 
@@ -79,6 +109,16 @@ export default function TrackPage() {
             <span className="text-green-brand">──→</span>
             <span>{shipment.destination}</span>
           </div>
+          {(slotInfo.slotNumber !== null || slotInfo.tripReference) && (
+            <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-center gap-4 text-xs text-white/40">
+              {slotInfo.tripReference && (
+                <span>Trip <span className="text-white/60 font-mono">{slotInfo.tripReference}</span></span>
+              )}
+              {slotInfo.slotNumber !== null && (
+                <span>Slot <span className="text-white/60 font-mono">#{slotInfo.slotNumber}</span></span>
+              )}
+            </div>
+          )}
         </motion.div>
 
         {/* Status card */}
@@ -209,6 +249,53 @@ export default function TrackPage() {
                   </div>
                 )
               })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Proof of Delivery */}
+        {shipment.status === 'delivered' && podRecord && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white rounded-2xl p-6 border border-navy/6 mt-4"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-xs font-bold tracking-widest uppercase text-gray-400">
+                Proof of Delivery
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                Delivered
+              </span>
+            </div>
+
+            {/* POD photo */}
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-4 bg-gray-50">
+              <Image
+                src={podRecord.photo_url}
+                alt="Proof of delivery photo"
+                fill
+                className="object-cover"
+                sizes="(max-width: 672px) 100vw, 672px"
+              />
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Received by</span>
+                <span className="font-semibold text-navy">{podRecord.receiver_name}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400">Delivered at</span>
+                <span className="font-semibold text-navy">
+                  {new Date(podRecord.created_at).toLocaleString('en-GB', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                  })}
+                </span>
+              </div>
             </div>
           </motion.div>
         )}
