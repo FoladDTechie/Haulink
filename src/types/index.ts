@@ -114,6 +114,18 @@ export interface SlotEvent {
   created_at: string
 }
 
+// ── POD Record ───────────────────────────────────────────────
+export interface PODRecord {
+  id: string
+  slot_id: string
+  photo_url: string
+  receiver_name: string
+  receiver_signature: string | null
+  otp_confirmed: boolean
+  cardano_tx_hash: string | null
+  created_at: string
+}
+
 // ── Merchant ──────────────────────────────────────────────────
 export interface Merchant {
   id: string

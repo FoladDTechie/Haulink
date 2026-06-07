@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase-browser'
-import type { Trip, SlotEvent } from '@/types'
+import type { Trip, SlotEvent, PODRecord } from '@/types'
 
 // ── Shipment helpers ──────────────────────────────────────────
 
@@ -118,6 +118,88 @@ export async function getSlotAvailability(
     if (row.slot_tier in counts) counts[row.slot_tier]++
   }
   return counts
+}
+
+// ── POD helpers ───────────────────────────────────────────────
+
+export async function getShipmentPOD(shipmentId: string): Promise<PODRecord | null> {
+  try {
+    const { data: bookingSlots } = await supabase
+      .from('booking_slots')
+      .select('slot_id')
+      .eq('shipment_id', shipmentId)
+
+    const slotIds = (bookingSlots ?? []).map((r: { slot_id: string }) => r.slot_id)
+    if (slotIds.length === 0) return null
+
+    const { data } = await supabase
+      .from('pod_records')
+      .select('*')
+      .in('slot_id', slotIds)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    return (data?.[0] ?? null) as PODRecord | null
+  } catch {
+    return null
+  }
+}
+
+export async function uploadPODPhoto(file: File, shipmentId: string): Promise<string> {
+  const timestamp = Date.now()
+  const filePath = `${shipmentId}/${timestamp}.jpg`
+
+  const { error } = await supabase.storage
+    .from('pod-photos')
+    .upload(filePath, file, {
+      contentType: file.type || 'image/jpeg',
+      upsert: true,
+    })
+
+  if (error) throw error
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('pod-photos')
+    .getPublicUrl(filePath)
+
+  return publicUrl
+}
+
+export async function getShipmentSlotInfo(shipmentId: string): Promise<{
+  slotNumber: number | null
+  tripReference: string | null
+}> {
+  try {
+    const { data: bs } = await supabase
+      .from('booking_slots')
+      .select('slot_id')
+      .eq('shipment_id', shipmentId)
+      .limit(1)
+      .maybeSingle()
+
+    if (!bs?.slot_id) return { slotNumber: null, tripReference: null }
+
+    const { data: slot } = await supabase
+      .from('slots')
+      .select('slot_number, trip_id')
+      .eq('id', bs.slot_id)
+      .maybeSingle()
+
+    if (!slot) return { slotNumber: null, tripReference: null }
+
+    const { data: trip } = await supabase
+      .from('trips')
+      .select('reference')
+      .eq('id', (slot as { slot_number: number; trip_id: string }).trip_id)
+      .maybeSingle()
+
+    return {
+      slotNumber: (slot as { slot_number: number }).slot_number ?? null,
+      tripReference: (trip as { reference: string } | null)?.reference ?? null,
+    }
+  } catch {
+    return { slotNumber: null, tripReference: null }
+  }
 }
 
 // ── Slot booking (atomic via Postgres function) ───────────────
