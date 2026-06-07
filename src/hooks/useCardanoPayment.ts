@@ -56,7 +56,7 @@ export function useCardanoPayment() {
   const sendPayment = useCallback(async (
     walletName: WalletName,
     amountNGN: number,
-    memo: string
+    msgParts: string[],
   ) => {
     setState(s => ({ ...s, isSending: true, error: null }))
 
@@ -75,8 +75,8 @@ export function useCardanoPayment() {
           String(Math.ceil(adaAmount * 1_000_000)) // convert ADA to Lovelace
         )
 
-      // Attach shipment memo as transaction metadata (key 674 = msg standard)
-      tx.setMetadata(674, { msg: [memo] })
+      // CIP-0020: attach multi-part message metadata (key 674), max 64 bytes per part
+      tx.setMetadata(674, { msg: msgParts.map(s => s.slice(0, 64)) })
 
       const unsignedTx = await tx.build()
       const signedTx = await wallet.signTx(unsignedTx)
