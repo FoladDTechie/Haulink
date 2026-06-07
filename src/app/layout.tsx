@@ -8,7 +8,7 @@ const grotesk = Space_Grotesk({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-grotesk',
-  display: 'swap',
+  display: 'optional',
 })
 
 // Serif — Bodoni Moda (Ivy Presto Display alternative — italic accents, editorial)
@@ -17,7 +17,7 @@ const bodoni = Bodoni_Moda({
   weight: ['400', '500', '600', '700', '800'],
   style: ['normal', 'italic'],
   variable: '--font-serif',
-  display: 'swap',
+  display: 'optional',
 })
 
 export const metadata: Metadata = {

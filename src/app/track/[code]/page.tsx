@@ -306,6 +306,46 @@ export default function TrackPage() {
           </motion.div>
         )}
 
+        {/* Verified on Cardano */}
+        {shipment.cardano_tx_hash && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="rounded-2xl p-6 border mt-4"
+            style={{ background: 'rgba(0,51,173,0.06)', borderColor: 'rgba(0,51,173,0.15)' }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-bold text-lg text-[#0033AD]">₳</span>
+                <span className="text-xs font-bold tracking-widest uppercase text-[#0033AD]/70">
+                  Verified on Cardano
+                </span>
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0033AD] bg-[#0033AD]/10 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#0033AD]" />
+                On-chain
+              </span>
+            </div>
+            <p className="text-xs text-navy/50 mb-3">
+              This delivery is anchored on the Cardano blockchain.
+            </p>
+            <div className="flex items-center justify-between gap-4">
+              <code className="text-xs font-mono text-navy/60 truncate">
+                {shipment.cardano_tx_hash.slice(0, 20)}…{shipment.cardano_tx_hash.slice(-8)}
+              </code>
+              <a
+                href={`https://preprod.cardanoscan.io/transaction/${shipment.cardano_tx_hash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 text-xs font-medium text-[#0033AD] hover:underline"
+              >
+                View on Cardanoscan ↗
+              </a>
+            </div>
+          </motion.div>
+        )}
+
         {/* Realtime indicator */}
         <div className="text-center mt-6 flex items-center justify-center gap-2 text-xs text-gray-400">
           <span className="w-1.5 h-1.5 bg-green-brand rounded-full animate-pulse-dot" />

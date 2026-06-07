@@ -64,7 +64,7 @@ export function StepPayment({
     if (payMethod === 'ada' && selectedWallet) {
       const txHash = await sendPayment(
         selectedWallet, totalNGN,
-        `Haulink ${tierName} ${form.origin}→${form.destination}`,
+        ['Haulink booking', `${form.origin} to ${form.destination}`],
       )
       if (txHash) onSubmit(txHash)
     } else {
@@ -386,7 +386,7 @@ export function StepPayment({
             <span className="w-1.5 h-1.5 rounded-full bg-green-brand" />
             {selectedWallet ? `Wallet connected · ${selectedWallet}` : 'No wallet'}
           </span>
-          <span className="uppercase tracking-[0.14em]">Mainnet</span>
+          <span className="uppercase tracking-[0.14em]">Preprod</span>
         </div>
 
         <button onClick={onBack} className="mt-3.5 w-full bg-transparent border-0 text-muted font-grotesk text-[13px] py-2 hover:text-ink transition-colors">

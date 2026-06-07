@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ShipmentStatus } from '@/types'
+import { CardanoAnchor } from './CardanoAnchor'
 
 const NEXT_STATUS: Partial<Record<ShipmentStatus, ShipmentStatus>> = {
   booked:     'collected',
@@ -31,6 +32,7 @@ export interface AdminShipmentRow {
   status: ShipmentStatus
   created_at: string
   merchant_id: string | null
+  cardano_tx_hash?: string | null
 }
 
 interface Props {
@@ -53,6 +55,12 @@ export function ShipmentsTable({ shipments }: Props) {
   const [podNotes, setPodNotes]           = useState('')
   const [podLoading, setPodLoading]       = useState(false)
   const [podError, setPodError]           = useState<string | null>(null)
+
+  // Cardano anchor state
+  const [anchorData, setAnchorData] = useState<{
+    shipmentId: string; trackingCode: string; podHash: string
+  } | null>(null)
+  const [anchoredTxes, setAnchoredTxes] = useState<Record<string, string>>({})
 
   // Toast
   const [toast, setToast]   = useState<string | null>(null)
@@ -133,14 +141,24 @@ export function ShipmentsTable({ shipments }: Props) {
         body: fd,
       })
 
+      const data = await res.json() as { error?: string; pod_hash?: string }
+
       if (!res.ok) {
-        const data = await res.json() as { error?: string }
         setPodError(data.error ?? 'Upload failed')
         return
       }
 
       setPodRow(null)
       showToast('Delivery confirmed')
+
+      if (data.pod_hash) {
+        setAnchorData({
+          shipmentId: shipment.id,
+          trackingCode: shipment.tracking_code,
+          podHash: data.pod_hash,
+        })
+      }
+
       router.refresh()
     } catch {
       setPodError('Network error')
@@ -235,7 +253,19 @@ export function ShipmentsTable({ shipments }: Props) {
                         )}
                       </div>
                     ) : (
-                      <span className="text-[12px] text-muted">Final</span>
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className="text-[12px] text-muted">Final</span>
+                        {(anchoredTxes[shipment.id] ?? shipment.cardano_tx_hash) && (
+                          <a
+                            href={`https://preprod.cardanoscan.io/transaction/${anchoredTxes[shipment.id] ?? shipment.cardano_tx_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0033AD] hover:underline"
+                          >
+                            <span className="font-mono font-bold">₳</span> Anchored ↗
+                          </a>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -372,6 +402,28 @@ export function ShipmentsTable({ shipments }: Props) {
                             <span className="text-[12px] text-red-600">{podError}</span>
                           )}
                         </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                {/* Cardano anchor row — shown after POD confirmation */}
+                {anchorData?.shipmentId === shipment.id && (
+                  <tr className="border-b border-line bg-[rgba(0,51,173,0.03)]">
+                    <td colSpan={8} className="px-6 py-5">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <div className="text-[11px] uppercase tracking-[0.14em] font-medium text-muted">
+                          Anchor proof of delivery on Cardano
+                        </div>
+                        <CardanoAnchor
+                          shipmentId={anchorData.shipmentId}
+                          trackingCode={anchorData.trackingCode}
+                          podHash={anchorData.podHash}
+                          onAnchored={(txHash) => {
+                            setAnchoredTxes(prev => ({ ...prev, [anchorData.shipmentId]: txHash }))
+                            setAnchorData(null)
+                            router.refresh()
+                          }}
+                        />
                       </div>
                     </td>
                   </tr>

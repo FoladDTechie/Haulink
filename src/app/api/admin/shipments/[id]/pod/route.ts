@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { createHash } from 'crypto'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function POST(
@@ -33,7 +34,7 @@ export async function POST(
   // Verify shipment exists and is in 'arrived' state
   const { data: shipment, error: fetchError } = await supabase
     .from('shipments')
-    .select('id, status')
+    .select('id, status, tracking_code')
     .eq('id', shipmentId)
     .single()
 
@@ -41,7 +42,7 @@ export async function POST(
     return NextResponse.json({ error: 'Shipment not found' }, { status: 404 })
   }
 
-  if ((shipment as { id: string; status: string }).status !== 'arrived') {
+  if ((shipment as { id: string; status: string; tracking_code: string }).status !== 'arrived') {
     return NextResponse.json(
       { error: 'Shipment must be in arrived status to confirm delivery' },
       { status: 400 }
@@ -126,5 +127,16 @@ export async function POST(
     }])
   }
 
-  return NextResponse.json({ success: true, pod_record: podRecord, public_url: publicUrl })
+  const trackingCode = (shipment as { id: string; status: string; tracking_code: string }).tracking_code ?? shipmentId
+  const podHash = createHash('sha256')
+    .update(trackingCode + receiverName + now + publicUrl)
+    .digest('hex')
+
+  return NextResponse.json({
+    success: true,
+    pod_record: podRecord,
+    public_url: publicUrl,
+    pod_hash: podHash,
+    shipment_id: shipmentId,
+  })
 }
