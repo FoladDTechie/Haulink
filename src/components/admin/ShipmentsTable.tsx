@@ -31,8 +31,6 @@ export interface AdminShipmentRow {
   status: ShipmentStatus
   created_at: string
   merchant_id: string | null
-  booking_slots: Array<{ slot_id: string }> | null
-  merchants: { name: string } | null
 }
 
 interface Props {
@@ -88,8 +86,6 @@ export function ShipmentsTable({ shipments }: Props) {
     const newStatus = NEXT_STATUS[shipment.status]
     if (!newStatus) return
 
-    const slotId = shipment.booking_slots?.[0]?.slot_id
-
     setLoading(true)
     setRowError(null)
 
@@ -100,7 +96,6 @@ export function ShipmentsTable({ shipments }: Props) {
         body: JSON.stringify({
           status: newStatus,
           note: note.trim() || undefined,
-          slot_id: slotId,
         }),
       })
 
@@ -219,9 +214,7 @@ export function ShipmentsTable({ shipments }: Props) {
                       {shipment.status.replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-muted text-[13px]">
-                    {shipment.merchants?.name ?? '—'}
-                  </td>
+                  <td className="px-6 py-4 text-muted text-[13px]">—</td>
                   <td className="px-6 py-4 text-muted text-[13px]">{dateStr}</td>
                   <td className="px-6 py-4">
                     {nextStatus ? (

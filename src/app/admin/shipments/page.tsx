@@ -12,15 +12,12 @@ export default async function AdminShipmentsPage() {
     redirect('/')
   }
 
-  const { data: shipments } = await supabase
+  const { data: shipments, error } = await supabase
     .from('shipments')
-    .select(`
-      id, tracking_code, tier_id, origin, destination, cargo_type,
-      status, created_at, merchant_id,
-      booking_slots(slot_id),
-      merchants(name)
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
+
+  console.log('[admin/shipments] count:', shipments?.length, 'error:', error)
 
   const shipmentList = (shipments ?? []) as unknown as AdminShipmentRow[]
 

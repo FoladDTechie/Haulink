@@ -85,6 +85,12 @@ export default function TrackPage() {
   if (loading) return <LoadingState />
   if (error || !shipment) return <ErrorState code={code} message={error} />
 
+  const podData = podRecord ?? (shipment.pod_photo_url ? {
+    photo_url: shipment.pod_photo_url,
+    receiver_name: shipment.pod_receiver_name,
+    created_at: shipment.pod_timestamp,
+  } : null)
+
   const statusIdx = getStatusIndex(shipment.status)
 
   return (
@@ -254,7 +260,7 @@ export default function TrackPage() {
         )}
 
         {/* Proof of Delivery */}
-        {shipment.status === 'delivered' && podRecord && (
+        {shipment.status === 'delivered' && podData && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -274,7 +280,7 @@ export default function TrackPage() {
             {/* POD photo */}
             <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-4 bg-gray-50">
               <Image
-                src={podRecord.photo_url}
+                src={podData.photo_url}
                 alt="Proof of delivery photo"
                 fill
                 className="object-cover"
@@ -285,12 +291,12 @@ export default function TrackPage() {
             <div className="space-y-2.5">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Received by</span>
-                <span className="font-semibold text-navy">{podRecord.receiver_name}</span>
+                <span className="font-semibold text-navy">{podData.receiver_name}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Delivered at</span>
                 <span className="font-semibold text-navy">
-                  {new Date(podRecord.created_at).toLocaleString('en-GB', {
+                  {new Date(podData.created_at ?? '').toLocaleString('en-GB', {
                     day: 'numeric', month: 'short', year: 'numeric',
                     hour: '2-digit', minute: '2-digit',
                   })}
