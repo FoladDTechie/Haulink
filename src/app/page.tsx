@@ -41,6 +41,7 @@ function HighwayBand() {
           alt="Haulink trailer in transit on a highway"
           fill
           priority={false}
+          sizes="100vw"
           className="object-cover"
           style={{ filter: 'saturate(0.92) contrast(1.02)' }}
         />

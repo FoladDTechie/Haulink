@@ -5,9 +5,12 @@ export const SLOT_TIERS: SlotTier[] = [
     id: 'micro',
     name: 'Micro Slot',
     label: 'Micro',
-    range: '1–5 cartons',
+    range: '1–4 boxes',
+    boxMin: 1,
+    boxMax: 4,
     description: 'Small traders, samples, test loads',
-    priceNGN: 8500,
+    pricePerBox: 7800,
+    priceNGN: 7800,
     escrowFeeNGN: 800,
     color: '#8A93A6',
     features: [
@@ -20,9 +23,12 @@ export const SLOT_TIERS: SlotTier[] = [
     id: 'half',
     name: 'Half Slot',
     label: 'Half',
-    range: '6–20 cartons',
+    range: '5–12 boxes',
+    boxMin: 5,
+    boxMax: 12,
     description: 'SME traders, small farms, textiles',
-    priceNGN: 18000,
+    pricePerBox: 7200,
+    priceNGN: 36000,
     escrowFeeNGN: 1500,
     color: '#2ECC52',
     popular: true,
@@ -37,9 +43,12 @@ export const SLOT_TIERS: SlotTier[] = [
     id: 'full',
     name: 'Full Slot',
     label: 'Full',
-    range: '21–50 cartons',
+    range: '13–24 boxes',
+    boxMin: 13,
+    boxMax: 24,
     description: 'Distributors, agri-coops, bulk goods',
-    priceNGN: 32000,
+    pricePerBox: 6720,
+    priceNGN: 87360,
     escrowFeeNGN: 2500,
     color: '#0D1B3E',
     features: [
@@ -53,9 +62,12 @@ export const SLOT_TIERS: SlotTier[] = [
     id: 'bulk',
     name: 'Bulk Slot',
     label: 'Bulk',
-    range: '50+ cartons',
+    range: '25–48 boxes',
+    boxMin: 25,
+    boxMax: 48,
     description: 'Large cooperatives, export prep',
-    priceNGN: 55000,
+    pricePerBox: 6240,
+    priceNGN: 156000,
     escrowFeeNGN: 4000,
     color: '#162952',
     features: [
@@ -66,6 +78,82 @@ export const SLOT_TIERS: SlotTier[] = [
     ],
   },
 ]
+
+export const CARGO_TYPES_WITH_BOX_ESTIMATES = [
+  {
+    id: 'palm_oil',
+    label: 'Palm Oil (25L jerry cans)',
+    unit: 'jerry cans',
+    unitsPerBox: 7,
+    category: 'agricultural',
+  },
+  {
+    id: 'textiles',
+    label: 'Textiles / Fabrics (cartons)',
+    unit: 'cartons',
+    unitsPerBox: 2,
+    category: 'general',
+  },
+  {
+    id: 'shea_butter',
+    label: 'Shea Butter (50kg bags)',
+    unit: 'bags',
+    unitsPerBox: 2,
+    category: 'agricultural',
+  },
+  {
+    id: 'hibiscus',
+    label: 'Hibiscus / Zobo (bags)',
+    unit: 'bags',
+    unitsPerBox: 3,
+    category: 'agricultural',
+  },
+  {
+    id: 'general_cartons',
+    label: 'General Cartons',
+    unit: 'cartons',
+    unitsPerBox: 2,
+    category: 'general',
+  },
+  {
+    id: 'electronics',
+    label: 'Electronics / Thrift (cartons)',
+    unit: 'cartons',
+    unitsPerBox: 2,
+    category: 'general',
+  },
+  {
+    id: 'furniture',
+    label: 'Furniture / Large Items',
+    unit: 'pieces',
+    unitsPerBox: 1,
+    category: 'heavy',
+  },
+  {
+    id: 'beverages',
+    label: 'Beverages / Drinks (cartons)',
+    unit: 'cartons',
+    unitsPerBox: 2,
+    category: 'general',
+  },
+]
+
+export const ROUTE_MULTIPLIERS: Record<string, number> = {
+  'Uyo-Lagos': 1.00,
+  'Calabar-Lagos': 1.15,
+  'Port Harcourt-Lagos': 1.05,
+  'Aba-Abuja': 1.05,
+  'Enugu-Lagos': 1.00,
+  'Kano-Lagos': 1.35,
+}
+
+export const BOX_DIMENSIONS = {
+  width: 60,
+  height: 60,
+  depth: 60,
+  unit: 'cm',
+  cartonsEquivalent: 2.5,
+}
 
 export const TRADE_ROUTES: TradeRoute[] = [
   { id: 'uyo-lagos', origin: 'Uyo', origin_state: 'Akwa Ibom', destination: 'Lagos', destination_state: 'Lagos', distance_km: 580, typical_days: 2, active: true },

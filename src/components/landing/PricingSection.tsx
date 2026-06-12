@@ -73,11 +73,17 @@ export function PricingSection() {
 
               <div
                 className={cn(
-                  'font-grotesk font-medium text-[40px] leading-none tracking-[-0.04em] pt-6 border-t mb-1.5',
+                  'font-grotesk font-medium text-[40px] leading-none tracking-[-0.04em] pt-6 border-t mb-1',
                   tier.popular ? 'text-white border-white/12' : 'text-ink border-line',
                 )}
               >
-                {formatNGN(tier.priceNGN)}
+                from {formatNGN(tier.priceNGN)}
+              </div>
+              <div className={cn(
+                'text-[13px] font-medium mb-1',
+                tier.popular ? 'text-green-brand' : 'text-green-deep',
+              )}>
+                {formatNGN(tier.pricePerBox)} per box
               </div>
               <div className={cn(
                 'text-[11.5px] tracking-[0.18em] uppercase mb-6',
@@ -85,7 +91,7 @@ export function PricingSection() {
               )}
                 style={!tier.popular ? { color: 'rgba(13,27,62,0.55)' } : undefined}
               >
-                per trip
+                {tier.range}
               </div>
 
               <ul className="space-y-0 mb-8 flex-1">

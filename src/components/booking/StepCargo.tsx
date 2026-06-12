@@ -1,14 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { SLOT_TIERS, CARGO_TYPES, TRADE_ROUTES } from '@/lib/constants'
-import { cn } from '@/lib/utils'
+import {
+  SLOT_TIERS,
+  CARGO_TYPES,
+  TRADE_ROUTES,
+  CARGO_TYPES_WITH_BOX_ESTIMATES,
+  ROUTE_MULTIPLIERS,
+} from '@/lib/constants'
+import { cn, formatNGN } from '@/lib/utils'
 import { getAvailableTrips, getSlotAvailability } from '@/lib/supabase'
-import type { BookingFormData, Trip } from '@/types'
+import type { BookingFormData, TierId, Trip } from '@/types'
 
 interface Props {
   form: BookingFormData
-  update: (field: keyof BookingFormData, value: string | boolean) => void
+  update: (field: keyof BookingFormData, value: string | boolean | number) => void
   onNext: () => void
 }
 
@@ -27,6 +33,32 @@ export function StepCargo({ form, update, onNext }: Props) {
   const [tripsLoading, setTripsLoading] = useState(false)
   const [slotAvailability, setSlotAvailability] = useState<Record<string, number>>({})
 
+  // Estimator state
+  const [estimatorCargoType, setEstimatorCargoType] = useState('')
+  const [estimatorQuantity, setEstimatorQuantity] = useState('')
+  const [estimatedBoxes, setEstimatedBoxes] = useState(0)
+  const [recommendedTier, setRecommendedTier] = useState<TierId | null>(null)
+  const [estimatorVisible, setEstimatorVisible] = useState(false)
+
+  // Recalculate whenever inputs change
+  useEffect(() => {
+    const qty = parseInt(estimatorQuantity, 10)
+    const cargoConfig = CARGO_TYPES_WITH_BOX_ESTIMATES.find(c => c.id === estimatorCargoType)
+    if (!cargoConfig || !qty || qty <= 0) {
+      setEstimatedBoxes(0)
+      setRecommendedTier(null)
+      setEstimatorVisible(false)
+      return
+    }
+    const boxes = Math.ceil(qty / cargoConfig.unitsPerBox)
+    const tier =
+      SLOT_TIERS.find(t => boxes >= t.boxMin && boxes <= t.boxMax) ??
+      SLOT_TIERS[SLOT_TIERS.length - 1]
+    setEstimatedBoxes(boxes)
+    setRecommendedTier(tier.id)
+    setEstimatorVisible(true)
+  }, [estimatorCargoType, estimatorQuantity])
+
   useEffect(() => {
     if (!form.origin || !form.destination) {
       setAvailableTrips([])
@@ -38,7 +70,6 @@ export function StepCargo({ form, update, onNext }: Props) {
       .catch(() => setAvailableTrips([]))
       .finally(() => setTripsLoading(false))
 
-    // Clear trip selection when route changes
     update('trip_id', '')
     update('trip_reference', '')
     setSlotAvailability({})
@@ -63,8 +94,109 @@ export function StepCargo({ form, update, onNext }: Props) {
     form.pickup_date &&
     (!hasTrips || form.trip_id)
 
+  // Compute price range for recommended tier in the estimator result
+  const routeKey = `${form.origin}-${form.destination}`
+  const routeMultiplier = ROUTE_MULTIPLIERS[routeKey] ?? 1.0
+  const recTier = recommendedTier ? SLOT_TIERS.find(t => t.id === recommendedTier) : null
+
+  function applyEstimate() {
+    if (!recTier) return
+    update('tier_id', recTier.id)
+    update('estimated_boxes', estimatedBoxes)
+    const cargoConfig = CARGO_TYPES_WITH_BOX_ESTIMATES.find(c => c.id === estimatorCargoType)
+    if (cargoConfig) {
+      update('cargo_unit_type', cargoConfig.id)
+      update('cargo_unit_quantity', parseInt(estimatorQuantity, 10))
+      // Map to the closest CARGO_TYPES label or leave as is
+      update('cargo_type', cargoConfig.label)
+    }
+  }
+
+  const selectedCargoConfig = CARGO_TYPES_WITH_BOX_ESTIMATES.find(c => c.id === estimatorCargoType)
+
   return (
     <div className="space-y-6">
+
+      {/* ── Cargo Estimator ── */}
+      <div>
+        <label className="block text-xs font-bold tracking-widest uppercase text-gray-400 mb-3">
+          What are you sending?
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <select
+              value={estimatorCargoType}
+              onChange={e => setEstimatorCargoType(e.target.value)}
+              className="form-select"
+            >
+              <option value="">Cargo type…</option>
+              {CARGO_TYPES_WITH_BOX_ESTIMATES.map(c => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="relative">
+            <input
+              type="number"
+              min={1}
+              value={estimatorQuantity}
+              onChange={e => setEstimatorQuantity(e.target.value)}
+              placeholder="Quantity"
+              className="form-input pr-20"
+            />
+            {selectedCargoConfig && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 pointer-events-none">
+                {selectedCargoConfig.unit}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Result — fade in when calculated */}
+        <div
+          className={cn(
+            'mt-3 rounded-xl border border-navy/10 bg-cream px-4 py-3.5 transition-all duration-300',
+            estimatorVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none h-0 overflow-hidden py-0 mt-0 border-0'
+          )}
+        >
+          {recTier && estimatorVisible && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="text-sm font-medium text-navy">
+                  That&apos;s approximately <strong>{estimatedBoxes} box{estimatedBoxes !== 1 ? 'es' : ''}</strong>
+                </span>
+                <span
+                  className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
+                  style={{ background: recTier.color }}
+                >
+                  → {recTier.name}
+                </span>
+              </div>
+              <div className="text-xs text-gray-500">
+                Estimated price:{' '}
+                <span className="font-semibold text-navy">
+                  {formatNGN(Math.round(recTier.pricePerBox * recTier.boxMin * routeMultiplier))}
+                  {' '}–{' '}
+                  {formatNGN(Math.round(recTier.pricePerBox * recTier.boxMax * routeMultiplier))}
+                </span>
+                {routeMultiplier !== 1 && (
+                  <span className="ml-1 text-gray-400">({routeKey} rate)</span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={applyEstimate}
+                className="mt-1 text-xs font-bold text-green-700 underline underline-offset-2 hover:text-green-600 transition-colors"
+              >
+                Apply this estimate
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-navy/8" />
+
       {/* Tier selector */}
       <div>
         <label className="block text-xs font-bold tracking-widest uppercase text-gray-400 mb-3">
@@ -97,6 +229,9 @@ export function StepCargo({ form, update, onNext }: Props) {
                   </span>
                 )}
                 <div className="font-display font-bold text-navy text-sm">{tier.label}</div>
+                <div className="text-[11px] text-green-700 font-semibold mt-0.5">
+                  {formatNGN(tier.pricePerBox)}/box
+                </div>
                 <div className="text-xs text-gray-400 mt-0.5">{tier.range}</div>
                 {hasAvailability && (
                   <div className={cn(
