@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import type { BookingFormData, TierId } from '@/types'
 import { generateTrackingCode } from '@/lib/utils'
-import { SLOT_TIERS } from '@/lib/constants'
+import { SLOT_TIERS, ROUTE_MULTIPLIERS } from '@/lib/constants'
 import { createShipment, bookSlot } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase-browser'
 
@@ -24,6 +24,9 @@ const initialData: BookingFormData = {
   receiver_phone: '',
   payment_method: 'card',
   escrow_enabled: false,
+  estimated_boxes: 0,
+  cargo_unit_type: '',
+  cargo_unit_quantity: 0,
 }
 
 export function useBookingForm(initialTier?: TierId) {
@@ -39,11 +42,16 @@ export function useBookingForm(initialTier?: TierId) {
 
   const tier = SLOT_TIERS.find(t => t.id === form.tier_id)!
 
-  const totalNGN =
-    tier.priceNGN + (form.escrow_enabled ? tier.escrowFeeNGN : 0)
+  const routeKey = `${form.origin}-${form.destination}`
+  const routeMultiplier = ROUTE_MULTIPLIERS[routeKey] ?? 1.0
+  const basePrice =
+    form.estimated_boxes && form.estimated_boxes > 0
+      ? Math.round(tier.pricePerBox * form.estimated_boxes * routeMultiplier)
+      : Math.round(tier.priceNGN * routeMultiplier)
+  const totalNGN = basePrice + (form.escrow_enabled ? tier.escrowFeeNGN : 0)
 
   const update = useCallback(
-    (field: keyof BookingFormData, value: string | boolean) => {
+    (field: keyof BookingFormData, value: string | boolean | number) => {
       setForm(prev => ({ ...prev, [field]: value }))
     },
     []

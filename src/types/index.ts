@@ -6,7 +6,10 @@ export interface SlotTier {
   name: string
   label: string
   range: string
+  boxMin: number
+  boxMax: number
   description: string
+  pricePerBox: number
   priceNGN: number
   escrowFeeNGN: number
   features: string[]
@@ -90,6 +93,11 @@ export interface BookingFormData {
   // Step 3 — Payment
   payment_method: 'card' | 'ada' | 'transfer'
   escrow_enabled: boolean
+
+  // Estimator
+  estimated_boxes?: number
+  cargo_unit_type?: string
+  cargo_unit_quantity?: number
 }
 
 // ── Routes ────────────────────────────────────────────────────

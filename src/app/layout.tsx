@@ -21,6 +21,9 @@ const bodoni = Bodoni_Moda({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://haulink.xyz'
+  ),
   title: 'Haulink — Containerizing Trailer Space for SMEs',
   description:
     'Book, pay, and track interstate cargo shipments. Structured freight for Nigerian SMEs, traders, and farmers — powered by Cardano.',

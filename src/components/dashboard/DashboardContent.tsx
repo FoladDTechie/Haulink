@@ -35,6 +35,12 @@ export function DashboardContent({ shipments, userName }: Props) {
       <div className="relative z-10 max-w-[1280px] mx-auto px-8 pt-14 pb-24">
         {/* Header */}
         <div className="mb-12">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-[12px] text-white/40 hover:text-white/70 transition-colors mb-6 tracking-wide"
+          >
+            ← Back to home
+          </Link>
           <div className="eyebrow mb-4 flex items-center gap-2.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
             <span
               className="w-1.5 h-1.5 rounded-full bg-green-brand"
