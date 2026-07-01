@@ -335,7 +335,7 @@ export default function TrackPage() {
                 {shipment.cardano_tx_hash.slice(0, 20)}…{shipment.cardano_tx_hash.slice(-8)}
               </code>
               <a
-                href={`https://preprod.cardanoscan.io/transaction/${shipment.cardano_tx_hash}`}
+                href={`https://cardanoscan.io/transaction/${shipment.cardano_tx_hash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-shrink-0 text-xs font-medium text-[#0033AD] hover:underline"

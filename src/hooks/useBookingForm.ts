@@ -22,7 +22,7 @@ const initialData: BookingFormData = {
   sender_phone: '',
   receiver_name: '',
   receiver_phone: '',
-  payment_method: 'card',
+  payment_method: 'ada',
   escrow_enabled: false,
   estimated_boxes: 0,
   cargo_unit_type: '',

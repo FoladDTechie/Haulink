@@ -47,7 +47,7 @@ export interface Shipment {
   receiver_name: string
   receiver_phone: string
   status: ShipmentStatus
-  payment_method: 'card' | 'ada' | 'transfer'
+  payment_method: 'ada'
   payment_status: 'pending' | 'paid' | 'escrowed' | 'released'
   escrow_enabled: boolean
   amount_ngn: number
@@ -91,7 +91,7 @@ export interface BookingFormData {
   receiver_phone: string
 
   // Step 3 — Payment
-  payment_method: 'card' | 'ada' | 'transfer'
+  payment_method: 'ada'
   escrow_enabled: boolean
 
   // Estimator
