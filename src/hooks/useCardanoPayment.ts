@@ -64,6 +64,16 @@ export function useCardanoPayment() {
       const { BrowserWallet, Transaction } = await import('@meshsdk/core')
 
       const wallet = await BrowserWallet.enable(walletName)
+
+      // Give the wallet a moment to fully initialize before Mesh reads UTxOs
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      const balance = await wallet.getBalance()
+      console.log('Wallet balance:', balance)
+      if (!balance || balance.length === 0) {
+        throw new Error('Wallet not ready — please try again')
+      }
+
       const adaAmount = ngnToAda(amountNGN)
 
       // Haulink receiving address — set in .env.local
