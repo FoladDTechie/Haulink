@@ -257,7 +257,7 @@ export function ShipmentsTable({ shipments }: Props) {
                         <span className="text-[12px] text-muted">Final</span>
                         {(anchoredTxes[shipment.id] ?? shipment.cardano_tx_hash) && (
                           <a
-                            href={`https://preprod.cardanoscan.io/transaction/${anchoredTxes[shipment.id] ?? shipment.cardano_tx_hash}`}
+                            href={`https://cardanoscan.io/transaction/${anchoredTxes[shipment.id] ?? shipment.cardano_tx_hash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0033AD] hover:underline"

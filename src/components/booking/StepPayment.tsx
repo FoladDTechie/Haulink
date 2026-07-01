@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Shield, AlertCircle, Loader2, CheckCircle2, ArrowRight, Lock, CreditCard, Repeat } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Shield, AlertCircle, Loader2, CheckCircle2, ArrowRight, Lock } from 'lucide-react'
 import { cn, formatNGN, ngnToAda } from '@/lib/utils'
 import { useCardanoPayment, getAvailableWallets, type WalletName } from '@/hooks/useCardanoPayment'
 import type { BookingFormData } from '@/types'
@@ -18,8 +18,6 @@ interface Props {
   onSubmit: (cardanoTxHash?: string) => void
   onBack: () => void
 }
-
-type PayMethod = 'ada' | 'card' | 'transfer'
 
 const AdaMark = ({ size = 40 }: { size?: number }) => (
   <div
@@ -51,7 +49,6 @@ export function StepPayment({
 }: Props) {
   const [availableWallets, setAvailableWallets] = useState<WalletName[]>([])
   const [selectedWallet, setSelectedWallet]     = useState<WalletName | null>(null)
-  const [payMethod, setPayMethod]               = useState<PayMethod>('ada')
   const { state: cardano, sendPayment }         = useCardanoPayment()
 
   useEffect(() => {
@@ -61,21 +58,17 @@ export function StepPayment({
   }, [])
 
   const handlePay = async () => {
-    if (payMethod === 'ada' && selectedWallet) {
-      const txHash = await sendPayment(
-        selectedWallet, totalNGN,
-        ['Haulink booking', `${form.origin} to ${form.destination}`],
-      )
-      if (txHash) onSubmit(txHash)
-    } else {
-      update('payment_method', payMethod)
-      onSubmit()
-    }
+    if (!selectedWallet) return
+    const txHash = await sendPayment(
+      selectedWallet, totalNGN,
+      ['Haulink booking', `${form.origin} to ${form.destination}`],
+    )
+    if (txHash) onSubmit(txHash)
   }
 
   const adaAmount = ngnToAda(totalNGN)
   const isLoading = isSubmitting || cardano.isSending
-  const canPay = payMethod !== 'ada' || !!selectedWallet
+  const canPay = !!selectedWallet
   const isDemoMode =
     process.env.NODE_ENV === 'development' ||
     process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
@@ -88,184 +81,67 @@ export function StepPayment({
       {/* ── LEFT — Card ── */}
       <div className="bg-paper rounded-3xl p-10 border border-white/[0.06] shadow-2xl shadow-black/40">
 
-        {/* Section i — methods */}
-        <div className="mb-9">
+        {/* Section i — wallet */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-9"
+        >
           <div className="eyebrow mb-3.5 flex items-center gap-2.5">
             <span className="font-serif-italic text-green-deep text-xl mr-1">i.</span>
-            Choose method
+            Wallet
           </div>
-          <h3 className="font-serif-display text-ink leading-[1.1] tracking-[-0.04em] mb-6 text-balance" style={{ fontSize: 30 }}>
-            How would you like to <em className="font-serif-italic text-green-deep">pay?</em>
+          <h3 className="font-serif-display text-ink leading-[1.1] tracking-[-0.04em] mb-5 text-balance" style={{ fontSize: 30 }}>
+            Connect a <em className="font-serif-italic text-green-deep">Cardano</em> wallet.
           </h3>
 
-          <div className="grid gap-2.5">
-            {/* ADA */}
-            <button
-              onClick={() => setPayMethod('ada')}
-              className={cn(
-                'flex items-center justify-between gap-3.5 px-5 py-4 rounded-2xl border transition-all text-left',
-                payMethod === 'ada'
-                  ? 'border-[#0033AD] text-white'
-                  : 'border-line-strong bg-white hover:border-ink',
-              )}
-              style={payMethod === 'ada' ? { background: 'linear-gradient(120deg, #0A0F22, #0a1338)' } : undefined}
-            >
-              <div className="flex items-center gap-4">
-                <AdaMark />
-                <div>
-                  <div className="font-medium text-[15.5px] tracking-tight">ADA · Cardano</div>
-                  <div className={cn('text-[12px] mt-0.5', payMethod === 'ada' ? 'text-white/55' : 'text-muted')}>
-                    On‑chain proof of delivery, escrow native
+          <div className="grid grid-cols-4 gap-2">
+            {allWallets.map((w) => {
+              const detected = availableWallets.includes(w)
+              const isSel = selectedWallet === w
+              return (
+                <button
+                  key={w}
+                  onClick={() => detected && setSelectedWallet(w)}
+                  disabled={!detected}
+                  className={cn(
+                    'p-3.5 rounded-2xl border bg-white flex flex-col items-center gap-2 transition-all',
+                    isSel
+                      ? 'border-green-deep'
+                      : detected ? 'border-line-strong hover:border-ink' : 'border-line opacity-60 cursor-not-allowed',
+                  )}
+                  style={isSel ? { background: 'rgba(46,204,82,0.08)' } : undefined}
+                >
+                  <div
+                    className="w-8 h-8 rounded-xl grid place-items-center text-white font-serif-italic text-[18px]"
+                    style={{ background: WALLET_COLORS[w] }}
+                  >
+                    {w[0].toUpperCase()}
                   </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="font-medium text-[15px]">
-                  {adaAmount}<em className="font-serif-italic text-green-brand font-normal ml-1">₳</em>
-                </span>
-                <span className={cn(
-                  'w-[18px] h-[18px] rounded-full border-[1.5px] grid place-items-center',
-                  payMethod === 'ada' ? 'border-white' : 'border-line-strong',
-                )}>
-                  {payMethod === 'ada' && <span className="w-2 h-2 rounded-full bg-green-brand" />}
-                </span>
-              </div>
-            </button>
-
-            {/* Card */}
-            <button
-              onClick={() => setPayMethod('card')}
-              className={cn(
-                'flex items-center justify-between gap-3.5 px-5 py-4 rounded-2xl border transition-all text-left',
-                payMethod === 'card' ? 'border-ink bg-ink text-white' : 'border-line-strong bg-white hover:border-ink',
-              )}
-            >
-              <div className="flex items-center gap-4">
-                <div className={cn(
-                  'w-10 h-10 rounded-xl grid place-items-center',
-                  payMethod === 'card' ? 'bg-white/10 text-white' : 'bg-[rgba(13,27,62,0.05)] text-ink',
-                )}>
-                  <CreditCard size={18} />
-                </div>
-                <div>
-                  <div className="font-medium text-[15.5px] tracking-tight">Card &amp; bank account</div>
-                  <div className={cn('text-[12px] mt-0.5', payMethod === 'card' ? 'text-white/55' : 'text-muted')}>
-                    Visa, Verve, Mastercard · Paystack
+                  <div className="text-[11px] font-medium tracking-[0.04em] capitalize text-ink">{w}</div>
+                  <div className={cn(
+                    'text-[9.5px] tracking-[0.14em] uppercase font-medium',
+                    isSel ? 'text-green-deep' : 'text-muted',
+                  )}>
+                    {isSel ? '— Connected' : detected ? 'Detected' : 'Install →'}
                   </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="font-medium text-[15px]">{formatNGN(totalNGN)}</span>
-                <span className={cn(
-                  'w-[18px] h-[18px] rounded-full border-[1.5px] grid place-items-center',
-                  payMethod === 'card' ? 'border-white' : 'border-line-strong',
-                )}>
-                  {payMethod === 'card' && <span className="w-2 h-2 rounded-full bg-green-brand" />}
-                </span>
-              </div>
-            </button>
-
-            {/* Transfer */}
-            <button
-              onClick={() => setPayMethod('transfer')}
-              className={cn(
-                'flex items-center justify-between gap-3.5 px-5 py-4 rounded-2xl border transition-all text-left',
-                payMethod === 'transfer' ? 'border-ink bg-ink text-white' : 'border-line-strong bg-white hover:border-ink',
-              )}
-            >
-              <div className="flex items-center gap-4">
-                <div className={cn(
-                  'w-10 h-10 rounded-xl grid place-items-center',
-                  payMethod === 'transfer' ? 'bg-white/10 text-white' : 'bg-[rgba(13,27,62,0.05)] text-ink',
-                )}>
-                  <Repeat size={18} />
-                </div>
-                <div>
-                  <div className="font-medium text-[15.5px] tracking-tight">Direct bank transfer</div>
-                  <div className={cn('text-[12px] mt-0.5', payMethod === 'transfer' ? 'text-white/55' : 'text-muted')}>
-                    NUBAN · settled within 30 min
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className="font-medium text-[15px]">{formatNGN(totalNGN)}</span>
-                <span className={cn(
-                  'w-[18px] h-[18px] rounded-full border-[1.5px] grid place-items-center',
-                  payMethod === 'transfer' ? 'border-white' : 'border-line-strong',
-                )}>
-                  {payMethod === 'transfer' && <span className="w-2 h-2 rounded-full bg-green-brand" />}
-                </span>
-              </div>
-            </button>
+                </button>
+              )
+            })}
           </div>
-        </div>
 
-        {/* Section ii — wallet */}
-        <AnimatePresence>
-          {payMethod === 'ada' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden mb-9"
-            >
-              <div className="eyebrow mb-3.5 flex items-center gap-2.5">
-                <span className="font-serif-italic text-green-deep text-xl mr-1">ii.</span>
-                Wallet
-              </div>
-              <h3 className="font-serif-display text-ink leading-[1.1] tracking-[-0.04em] mb-5 text-balance" style={{ fontSize: 30 }}>
-                Connect a <em className="font-serif-italic text-green-deep">Cardano</em> wallet.
-              </h3>
-
-              <div className="grid grid-cols-4 gap-2">
-                {allWallets.map((w) => {
-                  const detected = availableWallets.includes(w)
-                  const isSel = selectedWallet === w
-                  return (
-                    <button
-                      key={w}
-                      onClick={() => detected && setSelectedWallet(w)}
-                      disabled={!detected}
-                      className={cn(
-                        'p-3.5 rounded-2xl border bg-white flex flex-col items-center gap-2 transition-all',
-                        isSel
-                          ? 'border-green-deep'
-                          : detected ? 'border-line-strong hover:border-ink' : 'border-line opacity-60 cursor-not-allowed',
-                      )}
-                      style={isSel ? { background: 'rgba(46,204,82,0.08)' } : undefined}
-                    >
-                      <div
-                        className="w-8 h-8 rounded-xl grid place-items-center text-white font-serif-italic text-[18px]"
-                        style={{ background: WALLET_COLORS[w] }}
-                      >
-                        {w[0].toUpperCase()}
-                      </div>
-                      <div className="text-[11px] font-medium tracking-[0.04em] capitalize text-ink">{w}</div>
-                      <div className={cn(
-                        'text-[9.5px] tracking-[0.14em] uppercase font-medium',
-                        isSel ? 'text-green-deep' : 'text-muted',
-                      )}>
-                        {isSel ? '— Connected' : detected ? 'Detected' : 'Install →'}
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-
-              {cardano.txHash && (
-                <div className="mt-3 flex items-center gap-2 text-xs text-green-deep bg-green-muted rounded-xl p-3 border border-green-brand/20">
-                  <CheckCircle2 size={13} className="flex-shrink-0" />
-                  <code className="font-mono truncate">{cardano.txHash.slice(0, 32)}…</code>
-                </div>
-              )}
-            </motion.div>
+          {cardano.txHash && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-green-deep bg-green-muted rounded-xl p-3 border border-green-brand/20">
+              <CheckCircle2 size={13} className="flex-shrink-0" />
+              <code className="font-mono truncate">{cardano.txHash.slice(0, 32)}…</code>
+            </div>
           )}
-        </AnimatePresence>
+        </motion.div>
 
-        {/* Section iii — escrow */}
+        {/* Section ii — escrow */}
         <div>
           <div className="eyebrow mb-3.5 flex items-center gap-2.5">
-            <span className="font-serif-italic text-green-deep text-xl mr-1">iii.</span>
+            <span className="font-serif-italic text-green-deep text-xl mr-1">ii.</span>
             Protection
           </div>
           <h3 className="font-serif-display text-ink leading-[1.1] tracking-[-0.04em] mb-5 text-balance" style={{ fontSize: 30 }}>
@@ -349,12 +225,10 @@ export function StepPayment({
               <span className="font-grotesk font-medium text-ink">{formatNGN(escrowFeeNGN)}</span>
             </div>
           )}
-          {payMethod === 'ada' && (
-            <div className="flex justify-between items-baseline py-2.5 border-t border-dashed border-line text-[13.5px]">
-              <span className="text-muted">Network fee · Cardano</span>
-              <span className="font-grotesk font-medium text-ink">~ 0.17 ₳</span>
-            </div>
-          )}
+          <div className="flex justify-between items-baseline py-2.5 border-t border-dashed border-line text-[13.5px]">
+            <span className="text-muted">Network fee · Cardano</span>
+            <span className="font-grotesk font-medium text-ink">~ 0.17 ₳</span>
+          </div>
         </div>
 
         <button
@@ -364,7 +238,7 @@ export function StepPayment({
         >
           <span className="flex items-center gap-2.5">
             {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
-            {payMethod === 'ada' ? `Pay ${adaAmount} ₳ securely` : 'Pay securely'}
+            Pay {adaAmount} ₳ securely
           </span>
           <span className="w-8 h-8 rounded-full bg-green-brand text-ink grid place-items-center">
             <ArrowRight size={14} />
@@ -386,7 +260,7 @@ export function StepPayment({
             <span className="w-1.5 h-1.5 rounded-full bg-green-brand" />
             {selectedWallet ? `Wallet connected · ${selectedWallet}` : 'No wallet'}
           </span>
-          <span className="uppercase tracking-[0.14em]">Preprod</span>
+          <span className="uppercase tracking-[0.14em]">Mainnet</span>
         </div>
 
         <button onClick={onBack} className="mt-3.5 w-full bg-transparent border-0 text-muted font-grotesk text-[13px] py-2 hover:text-ink transition-colors">

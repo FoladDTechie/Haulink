@@ -180,7 +180,7 @@ msg: [
 | `@meshsdk/core` | 1.7.x |
 | `@meshsdk/react` | 1.4.x |
 | Node.js | 20.x (18.x causes engine warnings with Mesh) |
-| Wallet | Eternl on Cardano preprod |
+| Wallet | Eternl on Cardano mainnet (production) |
 
 ---
 

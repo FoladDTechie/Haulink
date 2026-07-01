@@ -28,7 +28,7 @@ export function CardanoAnchor({ shipmentId, trackingCode, podHash, onAnchored }:
         (await wallet.getChangeAddress())
 
       const tx = new Transaction({ initiator: wallet })
-      tx.sendLovelace(recipientAddress, '2000000')
+      tx.sendLovelace(recipientAddress, '1500000')
       tx.setMetadata(674, {
         msg: [
           'Haulink POD',
@@ -54,7 +54,7 @@ export function CardanoAnchor({ shipmentId, trackingCode, podHash, onAnchored }:
       const msg = err instanceof Error ? err.message : 'Transaction failed'
       setError(
         msg.toLowerCase().includes('not installed') || msg.toLowerCase().includes('not found')
-          ? 'Eternl wallet not found. Install it and switch to preprod.'
+          ? 'Eternl wallet not found. Install it and switch to mainnet.'
           : msg,
       )
     } finally {
@@ -69,7 +69,7 @@ export function CardanoAnchor({ shipmentId, trackingCode, podHash, onAnchored }:
         <span className="font-medium">Anchored on Cardano</span>
         <code className="font-mono text-[11px] opacity-70">{txHash.slice(0, 16)}…</code>
         <a
-          href={`https://preprod.cardanoscan.io/transaction/${txHash}`}
+          href={`https://cardanoscan.io/transaction/${txHash}`}
           target="_blank"
           rel="noopener noreferrer"
           className="underline opacity-70 hover:opacity-100"

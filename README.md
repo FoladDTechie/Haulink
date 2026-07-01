@@ -21,6 +21,16 @@ Built for the **Gimbalabs Piece of Pie Hackathon** — Week 1.
 
 ---
 
+## Cardano Mainnet
+
+Haulink runs on Cardano mainnet. ADA payments and proof of delivery anchoring use real mainnet transactions.
+
+Evidence will be added here after first mainnet transactions:
+- Booking payment: [cardanoscan.io link — add after first tx]
+- POD anchor: [cardanoscan.io link — add after first tx]
+
+---
+
 ## Getting Started
 
 ### 1. Clone and install
@@ -82,7 +92,7 @@ src/
 │   └── booking/
 │       ├── StepCargo.tsx      # Step 1: Route + cargo type
 │       ├── StepPeople.tsx     # Step 2: Sender + receiver
-│       ├── StepPayment.tsx    # Step 3: Card / ADA / Transfer + escrow
+│       ├── StepPayment.tsx    # Step 3: ADA payment + escrow
 │       ├── StepConfirmed.tsx  # Step 4: Success + tracking code
 │       └── StepIndicator.tsx  # Progress dots
 ├── hooks/
