@@ -185,7 +185,8 @@ export const SHIPMENT_MILESTONES = [
 ] as const
 
 // ADA/NGN approximate rate — replace with live API in production
-export const ADA_NGN_RATE = 570
+// Read client-side via NEXT_PUBLIC_ prefix; falls back to the hardcoded rate if unset
+export const ADA_NGN_RATE = Number(process.env.NEXT_PUBLIC_ADA_NGN_RATE) || 3000
 
 export const APP_NAME = 'Haulink'
 export const APP_TAGLINE = 'Containerizing trailer space for SMEs'
