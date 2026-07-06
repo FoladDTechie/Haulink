@@ -49,7 +49,9 @@ export function StepPayment({
 }: Props) {
   const [availableWallets, setAvailableWallets] = useState<WalletName[]>([])
   const [selectedWallet, setSelectedWallet]     = useState<WalletName | null>(null)
-  const { state: cardano, sendPayment }         = useCardanoPayment()
+  const [networkError, setNetworkError]         = useState<string | null>(null)
+  const [networkChecking, setNetworkChecking]   = useState(false)
+  const { state: cardano, sendPayment, validateNetwork } = useCardanoPayment()
 
   useEffect(() => {
     setAvailableWallets(getAvailableWallets())
@@ -57,8 +59,26 @@ export function StepPayment({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Verify the connected wallet is on the right network as soon as it's selected
+  useEffect(() => {
+    if (!selectedWallet) {
+      setNetworkError(null)
+      return
+    }
+    let cancelled = false
+    setNetworkChecking(true)
+    validateNetwork(selectedWallet)
+      .then(({ valid, message }) => {
+        if (!cancelled) setNetworkError(valid ? null : message)
+      })
+      .finally(() => {
+        if (!cancelled) setNetworkChecking(false)
+      })
+    return () => { cancelled = true }
+  }, [selectedWallet, validateNetwork])
+
   const handlePay = async () => {
-    if (!selectedWallet) return
+    if (!selectedWallet || networkError) return
     const txHash = await sendPayment(
       selectedWallet, totalNGN,
       ['Haulink booking', `${form.origin} to ${form.destination}`],
@@ -68,7 +88,7 @@ export function StepPayment({
 
   const adaAmount = ngnToAda(totalNGN)
   const isLoading = isSubmitting || cardano.isSending
-  const canPay = !!selectedWallet
+  const canPay = !!selectedWallet && !networkError && !networkChecking
   const isDemoMode =
     process.env.NODE_ENV === 'development' ||
     process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
@@ -129,6 +149,13 @@ export function StepPayment({
               )
             })}
           </div>
+
+          {networkError && (
+            <div className="mt-3 flex items-start gap-2 text-xs text-red-600 bg-red-50 rounded-xl p-3.5 border border-red-100">
+              <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
+              {networkError}
+            </div>
+          )}
 
           {cardano.txHash && (
             <div className="mt-3 flex items-center gap-2 text-xs text-green-deep bg-green-muted rounded-xl p-3 border border-green-brand/20">

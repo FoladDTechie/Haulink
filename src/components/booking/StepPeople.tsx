@@ -1,6 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import type { BookingFormData } from '@/types'
+
+// Nigerian numbers: 0 or +234, then 7/8/9, then 0/1, then 8 more digits
+const NG_PHONE_REGEX = /^(\+234|0)[789][01]\d{8}$/
+
+const isValidPhone = (phone: string) => NG_PHONE_REGEX.test(phone.trim())
+
+const PHONE_ERROR = 'Enter a valid Nigerian phone number (e.g. 08012345678 or +2348012345678)'
+const PHONE_HINT = 'Format: 08012345678 or +2348012345678'
 
 interface Props {
   form: BookingFormData
@@ -10,9 +19,17 @@ interface Props {
 }
 
 export function StepPeople({ form, update, onNext, onBack }: Props) {
+  const [phoneTouched, setPhoneTouched] = useState<{ sender: boolean; receiver: boolean }>({
+    sender: false,
+    receiver: false,
+  })
+
+  const senderPhoneInvalid = !!form.sender_phone && !isValidPhone(form.sender_phone)
+  const receiverPhoneInvalid = !!form.receiver_phone && !isValidPhone(form.receiver_phone)
+
   const canProceed =
-    form.sender_name && form.sender_phone &&
-    form.receiver_name && form.receiver_phone
+    form.sender_name && isValidPhone(form.sender_phone) &&
+    form.receiver_name && isValidPhone(form.receiver_phone)
 
   return (
     <div className="space-y-6">
@@ -35,9 +52,15 @@ export function StepPeople({ form, update, onNext, onBack }: Props) {
               type="tel"
               value={form.sender_phone}
               onChange={e => update('sender_phone', e.target.value)}
+              onBlur={() => setPhoneTouched(t => ({ ...t, sender: true }))}
               placeholder="08012345678"
               className="form-input"
             />
+            {phoneTouched.sender && senderPhoneInvalid ? (
+              <p className="text-xs text-red-500 mt-1.5">{PHONE_ERROR}</p>
+            ) : (
+              <p className="text-xs text-gray-400 mt-1.5">{PHONE_HINT}</p>
+            )}
           </FormField>
         </div>
       </div>
@@ -63,9 +86,15 @@ export function StepPeople({ form, update, onNext, onBack }: Props) {
               type="tel"
               value={form.receiver_phone}
               onChange={e => update('receiver_phone', e.target.value)}
+              onBlur={() => setPhoneTouched(t => ({ ...t, receiver: true }))}
               placeholder="07087654321"
               className="form-input"
             />
+            {phoneTouched.receiver && receiverPhoneInvalid ? (
+              <p className="text-xs text-red-500 mt-1.5">{PHONE_ERROR}</p>
+            ) : (
+              <p className="text-xs text-gray-400 mt-1.5">{PHONE_HINT}</p>
+            )}
           </FormField>
         </div>
         <p className="text-xs text-gray-400 mt-2">

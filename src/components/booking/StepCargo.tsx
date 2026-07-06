@@ -7,6 +7,7 @@ import {
   TRADE_ROUTES,
   CARGO_TYPES_WITH_BOX_ESTIMATES,
   ROUTE_MULTIPLIERS,
+  BOX_DIMENSIONS,
 } from '@/lib/constants'
 import { cn, formatNGN } from '@/lib/utils'
 import { getAvailableTrips, getSlotAvailability } from '@/lib/supabase'
@@ -32,6 +33,7 @@ export function StepCargo({ form, update, onNext }: Props) {
   const [availableTrips, setAvailableTrips] = useState<Trip[]>([])
   const [tripsLoading, setTripsLoading] = useState(false)
   const [slotAvailability, setSlotAvailability] = useState<Record<string, number>>({})
+  const [showDateHint, setShowDateHint] = useState(false)
 
   // Estimator state
   const [estimatorCargoType, setEstimatorCargoType] = useState('')
@@ -87,11 +89,16 @@ export function StepCargo({ form, update, onNext }: Props) {
   }, [form.trip_id])
 
   const hasTrips = availableTrips.length > 0
+  const todayStr = new Date().toISOString().split('T')[0]
+  const selectedTrip = availableTrips.find(t => t.id === form.trip_id)
+  const minPickupDate = selectedTrip?.departure_date ?? todayStr
+
   const canProceed =
     form.origin &&
     form.destination &&
     form.cargo_type &&
     form.pickup_date &&
+    form.pickup_date >= minPickupDate &&
     (!hasTrips || form.trip_id)
 
   // Compute price range for recommended tier in the estimator result
@@ -119,9 +126,12 @@ export function StepCargo({ form, update, onNext }: Props) {
 
       {/* ── Cargo Estimator ── */}
       <div>
-        <label className="block text-xs font-bold tracking-widest uppercase text-gray-400 mb-3">
+        <label className="block text-xs font-bold tracking-widest uppercase text-gray-400 mb-1">
           What are you sending?
         </label>
+        <p className="text-xs text-gray-400 mb-3">
+          1 box = {BOX_DIMENSIONS.width}×{BOX_DIMENSIONS.height}×{BOX_DIMENSIONS.depth}{BOX_DIMENSIONS.unit} of trailer space
+        </p>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <select
@@ -171,6 +181,9 @@ export function StepCargo({ form, update, onNext }: Props) {
                 >
                   → {recTier.name}
                 </span>
+              </div>
+              <div className="text-xs text-gray-400">
+                Each box: {BOX_DIMENSIONS.width}×{BOX_DIMENSIONS.height}×{BOX_DIMENSIONS.depth}{BOX_DIMENSIONS.unit} (~{BOX_DIMENSIONS.cartonsEquivalent} standard cartons)
               </div>
               <div className="text-xs text-gray-500">
                 Estimated price:{' '}
@@ -292,6 +305,10 @@ export function StepCargo({ form, update, onNext }: Props) {
                 const trip = availableTrips.find(t => t.id === e.target.value)
                 update('trip_id', e.target.value)
                 update('trip_reference', trip?.reference ?? '')
+                if (trip && form.pickup_date && form.pickup_date < trip.departure_date) {
+                  update('pickup_date', '')
+                  setShowDateHint(true)
+                }
               }}
               className="form-select"
             >
@@ -325,10 +342,18 @@ export function StepCargo({ form, update, onNext }: Props) {
           <input
             type="date"
             value={form.pickup_date}
-            min={new Date().toISOString().split('T')[0]}
-            onChange={e => update('pickup_date', e.target.value)}
+            min={minPickupDate}
+            onChange={e => {
+              setShowDateHint(false)
+              update('pickup_date', e.target.value)
+            }}
             className="form-input"
           />
+          {showDateHint && (
+            <p className="text-xs text-amber-600 mt-1.5">
+              Please select a date on or after the departure date
+            </p>
+          )}
         </FormField>
       </div>
 
