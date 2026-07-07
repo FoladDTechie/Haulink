@@ -53,6 +53,32 @@ export function useCardanoPayment() {
     }
   }, [])
 
+  const validateNetwork = useCallback(async (
+    walletName: WalletName,
+  ): Promise<{ valid: boolean; message: string }> => {
+    try {
+      const { BrowserWallet } = await import('@meshsdk/core')
+
+      const wallet = await BrowserWallet.enable(walletName)
+      const networkId = await wallet.getNetworkId()
+
+      // networkId 0 = testnet/preprod, 1 = mainnet
+      const targetNetwork = process.env.NEXT_PUBLIC_CARDANO_NETWORK || 'mainnet'
+      if (networkId === 0 && targetNetwork === 'mainnet') {
+        return {
+          valid: false,
+          message:
+            'Your wallet is connected to testnet. Please switch Eternl to Cardano mainnet and reconnect.',
+        }
+      }
+
+      return { valid: true, message: '' }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to verify wallet network'
+      return { valid: false, message }
+    }
+  }, [])
+
   const sendPayment = useCallback(async (
     walletName: WalletName,
     amountNGN: number,
@@ -113,7 +139,7 @@ export function useCardanoPayment() {
     })
   }, [])
 
-  return { state, connectWallet, sendPayment, reset }
+  return { state, connectWallet, validateNetwork, sendPayment, reset }
 }
 
 // ── Available Cardano wallets detector ────────────────────────
