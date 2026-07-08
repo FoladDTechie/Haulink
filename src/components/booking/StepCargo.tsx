@@ -10,7 +10,7 @@ import {
   BOX_DIMENSIONS,
 } from '@/lib/constants'
 import { cn, formatNGN } from '@/lib/utils'
-import { getAvailableTrips, getSlotAvailability } from '@/lib/supabase'
+import { getAvailableTrips, getAvailableSlots } from '@/lib/supabase'
 import type { BookingFormData, TierId, Trip } from '@/types'
 
 interface Props {
@@ -78,14 +78,25 @@ export function StepCargo({ form, update, onNext }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.origin, form.destination])
 
+  // Re-check per-tier availability whenever the selected trip changes
   useEffect(() => {
     if (!form.trip_id) {
       setSlotAvailability({})
       return
     }
-    getSlotAvailability(form.trip_id)
-      .then(setSlotAvailability)
-      .catch(() => setSlotAvailability({}))
+    let cancelled = false
+    Promise.all(
+      SLOT_TIERS.map(t =>
+        getAvailableSlots(form.trip_id, t.id).then(n => [t.id, n] as const)
+      )
+    )
+      .then(entries => {
+        if (!cancelled) setSlotAvailability(Object.fromEntries(entries))
+      })
+      .catch(() => {
+        if (!cancelled) setSlotAvailability({})
+      })
+    return () => { cancelled = true }
   }, [form.trip_id])
 
   const hasTrips = availableTrips.length > 0
@@ -99,7 +110,9 @@ export function StepCargo({ form, update, onNext }: Props) {
     form.cargo_type &&
     form.pickup_date &&
     form.pickup_date >= minPickupDate &&
-    (!hasTrips || form.trip_id)
+    (!hasTrips || form.trip_id) &&
+    // block proceeding when the selected tier is known to be sold out
+    slotAvailability[form.tier_id] !== 0
 
   // Compute price range for recommended tier in the estimator result
   const routeKey = `${form.origin}-${form.destination}`
@@ -234,7 +247,13 @@ export function StepCargo({ form, update, onNext }: Props) {
                   isSoldOut && 'opacity-40 cursor-not-allowed'
                 )}
               >
-                {tier.popular && (
+                {isSoldOut ? (
+                  <span className="absolute -top-2 right-3 bg-red-500 text-white
+                                   text-[9px] font-extrabold tracking-wider uppercase
+                                   px-2 py-0.5 rounded-full">
+                    Sold out
+                  </span>
+                ) : tier.popular && (
                   <span className="absolute -top-2 right-3 bg-green-brand text-navy
                                    text-[9px] font-extrabold tracking-wider uppercase
                                    px-2 py-0.5 rounded-full">
@@ -249,9 +268,13 @@ export function StepCargo({ form, update, onNext }: Props) {
                 {hasAvailability && (
                   <div className={cn(
                     'text-[10px] font-semibold mt-1.5',
-                    available === 0 ? 'text-red-400' : 'text-green-600'
+                    available === 0
+                      ? 'text-red-500'
+                      : available <= 3 ? 'text-amber-600' : 'text-green-600'
                   )}>
-                    {available === 0 ? 'Sold out' : `${available} slot${available === 1 ? '' : 's'} left`}
+                    {available === 0
+                      ? 'No slots available'
+                      : `${available} slot${available === 1 ? '' : 's'} available`}
                   </div>
                 )}
               </button>
