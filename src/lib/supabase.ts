@@ -102,6 +102,21 @@ export async function getAvailableTrips(
   return (data ?? []) as Trip[]
 }
 
+export async function getAvailableSlots(
+  tripId: string,
+  tier: string
+): Promise<number> {
+  const { count, error } = await supabase
+    .from('slots')
+    .select('id', { count: 'exact', head: true })
+    .eq('trip_id', tripId)
+    .eq('slot_tier', tier)
+    .eq('status', 'available')
+
+  if (error) throw error
+  return count ?? 0
+}
+
 export async function getSlotAvailability(
   tripId: string
 ): Promise<Record<string, number>> {

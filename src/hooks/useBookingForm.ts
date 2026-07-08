@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import type { BookingFormData, TierId } from '@/types'
 import { generateTrackingCode } from '@/lib/utils'
 import { SLOT_TIERS, ROUTE_MULTIPLIERS } from '@/lib/constants'
-import { createShipment, bookSlot } from '@/lib/supabase'
+import { createShipment, bookSlot, getAvailableSlots } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase-browser'
 
 export type BookingStep = 1 | 2 | 3 | 4  // cargo | people | payment | confirm
@@ -36,6 +36,7 @@ export function useBookingForm(initialTier?: TierId) {
     tier_id: initialTier || 'half',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isValidatingSlots, setIsValidatingSlots] = useState(false)
   const [trackingCode, setTrackingCode] = useState<string | null>(null)
   const [slotNumber, setSlotNumber] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -57,9 +58,32 @@ export function useBookingForm(initialTier?: TierId) {
     []
   )
 
-  const nextStep = useCallback(() => {
+  const nextStep = useCallback(async () => {
+    setError(null)
+
+    // Gate before payment: re-confirm slots are still available so the user
+    // can never reach the payment screen for a sold-out tier
+    if (step === 2 && form.trip_id) {
+      setIsValidatingSlots(true)
+      try {
+        const available = await getAvailableSlots(form.trip_id, form.tier_id)
+        if (available <= 0) {
+          setError(
+            `Sorry, all ${tier.name} slots on this trip have just been booked. ` +
+            'Please select a different trip or tier.'
+          )
+          return
+        }
+      } catch {
+        // Availability check unavailable (offline / demo mode) — let the user
+        // through; reserve_slot is atomic and will reject at booking time
+      } finally {
+        setIsValidatingSlots(false)
+      }
+    }
+
     setStep(s => Math.min(s + 1, 4) as BookingStep)
-  }, [])
+  }, [step, form.trip_id, form.tier_id, tier.name])
 
   const prevStep = useCallback(() => {
     setStep(s => Math.max(s - 1, 1) as BookingStep)
@@ -94,9 +118,30 @@ export function useBookingForm(initialTier?: TierId) {
         }
 
         if (form.trip_id) {
-          const result = await bookSlot(form.trip_id, form.tier_id, userId, basePayload)
-          setTrackingCode(result.bookingReference)
-          setSlotNumber(result.slotNumber)
+          try {
+            const result = await bookSlot(form.trip_id, form.tier_id, userId, basePayload)
+            setTrackingCode(result.bookingReference)
+            setSlotNumber(result.slotNumber)
+          } catch (err) {
+            // Race condition: another user took the last slot between the
+            // pre-payment check and reserve_slot (raises P0001 / "No available slots")
+            const message = (err as { message?: string })?.message ?? ''
+            const code = (err as { code?: string })?.code
+            const noSlots = code === 'P0001' || /no available slots/i.test(message)
+            if (cardanoTxHash && noSlots) {
+              console.error(
+                'Slot reservation failed after successful payment — recover via tx hash:',
+                cardanoTxHash
+              )
+              setError(
+                'Payment received but no slots were available on this trip. ' +
+                'Please contact support at babdulazeez3@gmail.com with your ' +
+                'transaction hash for a refund.'
+              )
+              return
+            }
+            throw err
+          }
         } else {
           const code = generateTrackingCode(form.origin)
           try {
@@ -131,6 +176,7 @@ export function useBookingForm(initialTier?: TierId) {
     tier,
     totalNGN,
     isSubmitting,
+    isValidatingSlots,
     trackingCode,
     slotNumber,
     error,
