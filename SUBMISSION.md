@@ -11,8 +11,8 @@
 - **Repo:** https://github.com/FoladDTechie/Haulink
 - **Live product:** https://haulink.xyz
 - **X account:** https://x.com/Haulink_
-- **Presentation slides:** https://drive.google.com/drive/folders/1LrgwF2dFxrJUnKg-eLvRBD5lAt2YvDjt?usp=drive_link
-- **Demo video:** [Add link]
+- **Presentation slides:** [Slide Deck](https://canva.link/iw4exbodv3mdnh8)
+- **Demo video:** [Demo Video](https://drive.google.com/file/d/1YW0gDERh1y25DZDBdWxDHVfNd8PnX_4A/view?usp=sharing)
 
 ---
 
@@ -74,22 +74,20 @@ https://cardanoscan.io/transaction/08489e64e210debbcaff6840b2518b55a5755698ea2f8
 
 ### Sessions where others reviewed Haulink
 
-| # | Reviewer | Date | Recording |
-|---|---------|------|-----------|
-| 1 | Gideon OV | June 5, 2026 | [Add link] |
+[Reviews of Haulink](https://docs.google.com/document/d/1ySg1rcOGToDJ4Jspm5_U2h6goz0K9HmfQ17vC_M3MoQ/edit?usp=drive_link)
 
 **Total feedback sessions given:** 4
-**Total feedback sessions received:** 1
+**Total feedback sessions received:** 4
 
 ---
 
 ## Google Drive Folders
 
 **Feedback evidence (recordings + template):**
-https://drive.google.com/drive/folders/1DKs9G8pe_dbkgqdXtvuDo1t2F56W3bF-?usp=drive_link
+[Feedback evidence](https://drive.google.com/drive/folders/1DKs9G8pe_dbkgqdXtvuDo1t2F56W3bF-?usp=drive_link)
 
 **Presentation deck + slides + supporting docs:**
-https://drive.google.com/drive/folders/1LrgwF2dFxrJUnKg-eLvRBD5lAt2YvDjt?usp=drive_link
+[Presentation deck + slides + supporting docs](https://drive.google.com/drive/folders/1LrgwF2dFxrJUnKg-eLvRBD5lAt2YvDjt?usp=drive_link)
 
 ---
 
@@ -98,7 +96,7 @@ https://drive.google.com/drive/folders/1LrgwF2dFxrJUnKg-eLvRBD5lAt2YvDjt?usp=dri
 - ✅ Live product — https://haulink.xyz
 - ✅ Public repo — github.com/FoladDTechie/Haulink
 - ✅ 12 weekly tweets — all linked above
-- ⬜ Demo video — [Add link]
+- ✅ Demo video — [Demo Video](https://drive.google.com/file/d/1YW0gDERh1y25DZDBdWxDHVfNd8PnX_4A/view?usp=sharing)
 - ✅ Cardano mainnet — 2 confirmed transactions
 - ✅ Feedback sessions given — 4 recorded sessions
 - ✅ Feedback sessions received — 1 recorded session
