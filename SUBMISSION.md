@@ -7,7 +7,7 @@
 
 - **Project name:** Haulink
 - **Builder:** Abdulazeez Folaranmi Bello
-- **Tracks:** Builder Pie + Cardano Pie + Feedback Pie
+- **Tracks:** Cardano Pie + Feedback Pie
 - **Repo:** https://github.com/FoladDTechie/Haulink
 - **Live product:** https://haulink.xyz
 - **X account:** https://x.com/Haulink_
