@@ -7,7 +7,7 @@
 
 - **Project name:** Haulink
 - **Builder:** Abdulazeez Folaranmi Bello
-- **Tracks:** Builder Pie + Cardano Pie + Feedback Pie
+- **Tracks:** Cardano Pie + Feedback Pie
 - **Repo:** https://github.com/FoladDTechie/Haulink
 - **Live product:** https://haulink.xyz
 - **X account:** https://x.com/Haulink_
@@ -16,7 +16,7 @@
 
 ---
 
-## Builder Pie Evidence
+## Cardano Pie Evidence
 
 ### Weekly Update Posts
 
@@ -60,7 +60,7 @@ https://cardanoscan.io/transaction/08489e64e210debbcaff6840b2518b55a5755698ea2f8
 - Verifiable on Cardanoscan mainnet
 
 ---
-
+[Presentation Video](https://www.canva.com/design/DAHPesrw5H0/9zs2mD1XEXMPwvvz7907YA/view?utm_content=DAHPesrw5H0&utm_campaign=designshare&utm_medium=link&utm_source=recording_view)
 ## Feedback Pie Evidence
 
 ### Sessions where I gave feedback
@@ -97,6 +97,7 @@ https://cardanoscan.io/transaction/08489e64e210debbcaff6840b2518b55a5755698ea2f8
 - ✅ Public repo — github.com/FoladDTechie/Haulink
 - ✅ 12 weekly tweets — all linked above
 - ✅ Demo video — [Demo Video](https://drive.google.com/file/d/1YW0gDERh1y25DZDBdWxDHVfNd8PnX_4A/view?usp=sharing)
+
 - ✅ Cardano mainnet — 2 confirmed transactions
 - ✅ Feedback sessions given — 4 recorded sessions
 - ✅ Feedback sessions received — 1 recorded session
